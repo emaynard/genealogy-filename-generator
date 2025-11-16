@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2025-11-15
+
 ### Added
+- **GitHub Pages Support:** Added `index.html` redirect to enable GitHub Pages deployment at repository root
 - **Conditional Syntax:** Template conditional syntax using `{{ placeholder }}` for optional content handling in filenames. Allows templates to gracefully handle missing data without displaying empty separators
 - **All-Tags Support:** Complete template placeholder system including reverse format variants (`{RevPLACE}`, `{RevDATE}`) for genealogy-standard formatting
 - **Multi-Person Template Integration:** `{AdditionalPeople}` placeholder with reusable `nameFormat` configuration for generating filenames that include spouse, children, witnesses, and other additional people in genealogy documents
