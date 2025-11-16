@@ -1,6 +1,6 @@
 # Genealogy Filename Generator
 
-**Version 1.0.2** | A specialized tool for genealogists to generate standardized filenames and metadata commands for genealogy documents.
+**Version 1.0.3** | A specialized tool for genealogists to generate standardized filenames and metadata commands for genealogy documents.
 
 ## Overview
 
@@ -161,8 +161,8 @@ This project follows [Semantic Versioning](https://semver.org/):
 ## Project Status
 
 - **Status**: Functional, production-ready
-- **Current Version**: 1.0.2
-- **Last Updated**: 2025-10-12
+- **Current Version**: 1.0.3
+- **Last Updated**: 2025-11-15
 
 ## Support
 
