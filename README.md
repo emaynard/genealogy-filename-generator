@@ -25,7 +25,7 @@ Birth_USA.Ohio.Medina-County.Wadsworth_1922.01.04_KEENER.Jane.Alma_Birth-Certifi
 
 Following the pattern:
 ```
-[Type]_[Reverse.Place]_[Reverse.Date]_[SURNAME.Given.Middle]_[info].ext
+[Type]_[Place]_[Date]_[SURNAME.Given.Middle]_[info].ext
 ```
 
 ## Quick Start
