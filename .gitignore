@@ -1,0 +1,14 @@
+# Local development directories
+docs/
+.bmad/
+.claude/
+.github/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+*.swp
+*.swo
+*~
