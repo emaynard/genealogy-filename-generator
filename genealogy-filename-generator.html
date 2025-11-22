@@ -926,6 +926,30 @@
                                     </div>
                                 </div>
 
+                                <!-- DATE Sub-template Section (Story 1.3) -->
+                                <h6 class="mb-3 mt-4"><i class="bi bi-calendar me-2"></i>Date Sub-template</h6>
+
+                                <div class="alert alert-info" role="alert">
+                                    <strong><i class="bi bi-info-circle me-1"></i>Date Placeholder Syntax:</strong>
+                                    <ul class="mb-0 mt-2 small">
+                                        <li><code>{YYYY}</code> - 4-digit year (e.g., 2024)</li>
+                                        <li><code>{YY}</code> - 2-digit year (e.g., 24)</li>
+                                        <li><code>{MM}</code> - Zero-padded month (e.g., 03)</li>
+                                        <li><code>{M}</code> - Month without padding (e.g., 3)</li>
+                                        <li><code>{DD}</code> - Zero-padded day (e.g., 05)</li>
+                                        <li><code>{D}</code> - Day without padding (e.g., 5)</li>
+                                    </ul>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="dateSubtemplateInput" class="form-label fw-semibold">Date Sub-template:</label>
+                                    <input type="text" id="dateSubtemplateInput" class="form-control font-monospace" maxlength="200" placeholder="Example: {YYYY}.{MM}.{DD}">
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Define how dates are formatted in your filenames. Leave blank to use default: {YYYY}.{MM}.{DD}
+                                    </div>
+                                </div>
+
                                 <!-- Additional People Name Format Section -->
                                 <h6 class="mb-3 mt-4"><i class="bi bi-people me-2"></i>Additional People Name Format</h6>
 
@@ -1025,6 +1049,7 @@
         let userSettings = {
             version: '1.0',
             filenameTemplate: '',
+            dateSubtemplate: '{YYYY}.{MM}.{DD}',  // Story 1.3: Default date template
             nameFormat: '{GIVEN}.{SURNAME}|+',
             useCustomTemplate: false,
             lastUpdated: null
@@ -1108,6 +1133,7 @@
             settingsCard: document.getElementById('settings-card'),
             // Settings tab elements
             filenameTemplate: document.getElementById('filenameTemplate'),
+            dateSubtemplateInput: document.getElementById('dateSubtemplateInput'),  // Story 1.3: DATE sub-template input
             nameFormatInput: document.getElementById('nameFormatInput'),
             templatePreview: document.getElementById('templatePreview'),
             resetTemplate: document.getElementById('resetTemplate'),
@@ -1148,6 +1174,13 @@
         // Settings event listeners (Story 2)
         elements.filenameTemplate.addEventListener('input', function() {
             updateTemplatePreview();
+            saveSettings();
+        });
+
+        // Story 1.3: dateSubtemplate field event listener
+        elements.dateSubtemplateInput.addEventListener('input', function() {
+            userSettings.dateSubtemplate = this.value || '{YYYY}.{MM}.{DD}';  // Use default if empty
+            generateFilename();  // Regenerate filename with new date template
             saveSettings();
         });
 
@@ -3299,8 +3332,9 @@
             let formattedDate;
 
             if (currentDateValue) {
-                // Use genealogical date formatting
-                formattedDate = formatGenealogyDateForFilename(currentDateValue);
+                // Story 1.3: Use DATE sub-template for formatting if available
+                const dateTemplate = userSettings.dateSubtemplate || '{YYYY}.{MM}.{DD}';
+                formattedDate = processDateSubtemplate(currentDateValue, dateTemplate);
             } else {
                 formattedDate = 'x';
             }
@@ -3545,6 +3579,78 @@
             result = result.replace(/{EXT}/g, fileExtension);
             result = result.replace(/{AdditionalPeople}/g, additionalPeopleStr);
 
+            return result;
+        }
+
+        // ============================================================================
+        // DATE SUB-TEMPLATE PROCESSOR (Story 1.3)
+        // ============================================================================
+        // Parses date strings into year, month, day components for template processing
+
+        // Story 1.3: Parse date input and extract components
+        function parseDateInput(dateString) {
+            if (!dateString || dateString.trim() === '') {
+                return { year: 'x', month: 'x', day: 'x' };
+            }
+
+            const trimmed = dateString.trim();
+            let year = 'x', month = 'x', day = 'x';
+
+            // Handle ISO format: YYYY-MM-DD
+            if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const parts = trimmed.split('-');
+                year = parts[0];
+                month = parts[1];
+                day = parts[2];
+                return { year, month, day };
+            }
+
+            // Handle partial dates: YYYY-MM or YYYY
+            if (trimmed.match(/^\d{4}(-\d{2})?$/)) {
+                const parts = trimmed.split('-');
+                year = parts[0];
+                month = (parts[1]) ? parts[1] : 'x';
+                day = 'x';
+                return { year, month, day };
+            }
+
+            // Handle genealogical formats: "Abt 1850", "Bef 1900-06", "Aft 1920"
+            const genealogicalMatch = trimmed.match(/(Abt|Bef|Aft)?\s*(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+            if (genealogicalMatch) {
+                year = genealogicalMatch[2];
+                month = genealogicalMatch[3] || 'x';
+                day = genealogicalMatch[4] || 'x';
+                return { year, month, day };
+            }
+
+            // If we can only extract a year, use it
+            const yearMatch = trimmed.match(/\b(\d{4})\b/);
+            if (yearMatch) {
+                year = yearMatch[1];
+                return { year, month: 'x', day: 'x' };
+            }
+
+            // Default: return all missing values
+            return { year: 'x', month: 'x', day: 'x' };
+        }
+
+        // Story 1.3: Process DATE sub-template with custom date formatting
+        function processDateSubtemplate(dateString, template) {
+            // Use default template if empty
+            const dateTemplate = template || '{YYYY}.{MM}.{DD}';
+
+            // Parse date input to extract components
+            const dateComponents = parseDateInput(dateString);
+
+            // Create data object for processSubTemplate
+            const data = {
+                year: dateComponents.year === 'x' ? null : dateComponents.year,
+                month: dateComponents.month === 'x' ? null : dateComponents.month,
+                day: dateComponents.day === 'x' ? null : dateComponents.day
+            };
+
+            // Use Story 1.1 processSubTemplate to apply the template
+            const result = processSubTemplate(dateTemplate, data, { missingValueHandler: 'x' });
             return result;
         }
 
@@ -4725,6 +4831,11 @@
                         elements.filenameTemplate.value = userSettings.filenameTemplate;
                     }
 
+                    // Story 1.3: Populate dateSubtemplate input if exists
+                    if (userSettings.dateSubtemplate && elements.dateSubtemplateInput) {
+                        elements.dateSubtemplateInput.value = userSettings.dateSubtemplate;
+                    }
+
                     // Story 4: Populate nameFormat input if exists
                     if (userSettings.nameFormat && elements.nameFormatInput) {
                         elements.nameFormatInput.value = userSettings.nameFormat;
@@ -4754,6 +4865,7 @@
                 try {
                     // Update userSettings object
                     userSettings.filenameTemplate = elements.filenameTemplate.value.trim();
+                    userSettings.dateSubtemplate = elements.dateSubtemplateInput.value.trim() || '{YYYY}.{MM}.{DD}';  // Story 1.3
                     userSettings.nameFormat = elements.nameFormatInput.value.trim() || '{GIVEN}.{SURNAME}|+';
                     userSettings.filePath = elements.filePath.value.trim();
                     userSettings.useCustomTemplate = userSettings.filenameTemplate.length > 0;
