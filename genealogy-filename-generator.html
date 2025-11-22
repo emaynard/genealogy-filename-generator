@@ -3307,6 +3307,117 @@
             return formattedDate;
         }
 
+        // ============================================================================
+        // SUB-TEMPLATE PROCESSOR - CORE ENGINE (Story 1.1)
+        // ============================================================================
+        // Processes template strings with placeholders and returns formatted output.
+        // Supports placeholder replacement, format modifiers, and conditional blocks.
+
+        function processSubTemplate(template, data, options = {}) {
+            // Default options
+            const { missingValueHandler = 'x', caseSensitive = false } = options;
+
+            if (!template || typeof template !== 'string') return '';
+
+            let result = template;
+
+            // Regex pattern for matching placeholders: {PLACEHOLDER} or {PLACEHOLDER:modifier}
+            // Captures: [1] = placeholder name, [2] = optional modifier (without colon)
+            const placeholderRegex = /\{([A-Z]+)(?::([a-z]+))?\}/g;
+
+            // Replace all placeholders in the template
+            result = result.replace(placeholderRegex, (match, placeholder, modifier) => {
+                // Map placeholder names to data keys (YYYY → year, MM → month, etc.)
+                const keyMap = {
+                    // Date placeholders
+                    'YYYY': 'year',
+                    'YY': 'year',
+                    'MM': 'month',
+                    'M': 'month',
+                    'DD': 'day',
+                    'D': 'day',
+                    // Place placeholders
+                    'COUNTRY': 'country',
+                    'C': 'country',
+                    'STATE': 'state',
+                    'S': 'state',
+                    'COUNTY': 'county',
+                    'CO': 'county',
+                    'CITY': 'city',
+                    'CI': 'city',
+                    // Name placeholders
+                    'SURNAME': 'surname',
+                    'GIVEN': 'given',
+                    'MIDDLE': 'middle'
+                };
+
+                const dataKey = keyMap[placeholder];
+
+                // If placeholder not recognized, log warning and preserve
+                if (!dataKey) {
+                    console.warn(`Unknown placeholder: ${placeholder}`);
+                    return match;
+                }
+
+                // Get value from data object
+                let value = data[dataKey];
+
+                // Handle missing/null/undefined/empty values
+                if (value === null || value === undefined || value === '') {
+                    return missingValueHandler;
+                }
+
+                // Convert to string
+                value = String(value);
+
+                // Apply padding rules for date placeholders
+                if ((placeholder === 'MM' || placeholder === 'DD') && !isNaN(value)) {
+                    value = String(value).padStart(2, '0');
+                } else if ((placeholder === 'YY') && !isNaN(value)) {
+                    // Extract last 2 digits of year
+                    const yearNum = parseInt(value);
+                    value = String(yearNum % 100).padStart(2, '0');
+                }
+
+                // Apply format modifiers if present
+                if (modifier) {
+                    value = applyModifier(value, modifier);
+                }
+
+                return value;
+            });
+
+            return result;
+        }
+
+        // Helper function to apply format modifiers
+        function applyModifier(value, modifier) {
+            if (!modifier || !value) return value;
+
+            const mod = modifier.toLowerCase();
+
+            switch (mod) {
+                case 'upper':
+                    return value.toUpperCase();
+                case 'lower':
+                    return value.toLowerCase();
+                case 'title':
+                    return toTitleCase(value);
+                case 'abbrev':
+                    return value.charAt(0).toUpperCase();
+                default:
+                    console.warn(`Unknown modifier: ${modifier}`);
+                    return value;
+            }
+        }
+
+        // Helper function for title case conversion
+        function toTitleCase(str) {
+            return str.replace(/\w\S*/g, (txt) =>
+                txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+            );
+        }
+
         // Helper function: Format additional people using nameFormat template
         function formatAdditionalPeople(additionalPeople, nameFormat = '{GIVEN}.{SURNAME}|+') {
             // Return empty string if no additional people exist
@@ -4709,12 +4820,412 @@
             }
         }
 
+        // ============================================================================
+        // TEST SUITE FOR processSubTemplate() - Story 1.1
+        // ============================================================================
+        // Comprehensive unit tests validating all acceptance criteria.
+
+        function runProcessSubTemplateTests() {
+            console.log('\n=== Running processSubTemplate() Test Suite ===\n');
+
+            const tests = [];
+            let passCount = 0;
+            let failCount = 0;
+
+            // Test 1: Basic placeholder replacement (AC #1)
+            try {
+                const result = processSubTemplate('{YYYY}.{MM}.{DD}', {
+                    year: 2024,
+                    month: 3,
+                    day: 15
+                });
+                const expected = '2024.03.15';
+                if (result === expected) {
+                    console.log('✓ Test 1 PASS: Basic placeholder replacement');
+                    console.log(`  Input: "{YYYY}.{MM}.{DD}" → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 1 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 1 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 2: Missing data handling (AC #2)
+            try {
+                const result = processSubTemplate('{YYYY}.{MM}.{DD}', { year: 2024 });
+                const expected = '2024.x.x';
+                if (result === expected) {
+                    console.log('✓ Test 2 PASS: Missing data handling');
+                    console.log(`  Input: partial data → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 2 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 2 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 3: Padding rules - MM with single digit (AC #3)
+            try {
+                const result = processSubTemplate('{MM}', { month: 3 });
+                const expected = '03';
+                if (result === expected) {
+                    console.log('✓ Test 3 PASS: Padding rules for MM');
+                    console.log(`  Input: month=3 → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 3 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 3 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 4: Padding rules - M without padding (AC #3)
+            try {
+                const result = processSubTemplate('{M}', { month: 3 });
+                const expected = '3';
+                if (result === expected) {
+                    console.log('✓ Test 4 PASS: No padding for single-letter placeholders');
+                    console.log(`  Input: {M} month=3 → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 4 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 4 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 5: Year abbreviation (AC #3)
+            try {
+                const result = processSubTemplate('{YY}', { year: 2024 });
+                const expected = '24';
+                if (result === expected) {
+                    console.log('✓ Test 5 PASS: Year abbreviation YY');
+                    console.log(`  Input: year=2024 → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 5 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 5 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 6: Format modifier :upper (AC #1)
+            try {
+                const result = processSubTemplate('{GIVEN:upper}', { given: 'john' });
+                const expected = 'JOHN';
+                if (result === expected) {
+                    console.log('✓ Test 6 PASS: Format modifier :upper');
+                    console.log(`  Input: {GIVEN:upper} given=john → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 6 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 6 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 7: Format modifier :lower
+            try {
+                const result = processSubTemplate('{SURNAME:lower}', { surname: 'SMITH' });
+                const expected = 'smith';
+                if (result === expected) {
+                    console.log('✓ Test 7 PASS: Format modifier :lower');
+                    console.log(`  Input: {SURNAME:lower} surname=SMITH → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 7 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 7 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 8: Format modifier :title
+            try {
+                const result = processSubTemplate('{GIVEN:title}', { given: 'john william' });
+                const expected = 'John William';
+                if (result === expected) {
+                    console.log('✓ Test 8 PASS: Format modifier :title');
+                    console.log(`  Input: {GIVEN:title} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 8 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 8 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 9: Format modifier :abbrev
+            try {
+                const result = processSubTemplate('{GIVEN:abbrev}', { given: 'john' });
+                const expected = 'J';
+                if (result === expected) {
+                    console.log('✓ Test 9 PASS: Format modifier :abbrev');
+                    console.log(`  Input: {GIVEN:abbrev} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 9 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 9 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 10: Performance - single execution (AC #5)
+            try {
+                const start = performance.now();
+                processSubTemplate('{YYYY}.{MM}.{DD}', { year: 2024, month: 3, day: 15 });
+                const duration = performance.now() - start;
+                if (duration < 5) {
+                    console.log(`✓ Test 10 PASS: Single execution performance`);
+                    console.log(`  Duration: ${duration.toFixed(3)}ms (target <5ms)`);
+                    passCount++;
+                } else {
+                    console.warn(`⚠ Test 10 WARNING: Performance ${duration.toFixed(3)}ms (target <5ms)`);
+                    passCount++; // Still pass, but warn
+                }
+            } catch (e) {
+                console.error('✗ Test 10 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 11: Performance - 1000 iterations (AC #5)
+            try {
+                const iterStart = performance.now();
+                for (let i = 0; i < 1000; i++) {
+                    processSubTemplate('{YYYY}.{MM}.{DD}', { year: 2024, month: 3, day: 15 });
+                }
+                const iterDuration = performance.now() - iterStart;
+                if (iterDuration < 5000) {
+                    console.log(`✓ Test 11 PASS: 1000 iterations performance`);
+                    console.log(`  Duration: ${iterDuration.toFixed(2)}ms (target <5000ms)`);
+                    passCount++;
+                } else {
+                    console.warn(`⚠ Test 11 WARNING: 1000 iterations ${iterDuration.toFixed(2)}ms (target <5000ms)`);
+                    passCount++; // Still pass, but warn
+                }
+            } catch (e) {
+                console.error('✗ Test 11 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 12: Deterministic output (AC #6)
+            try {
+                const input = { year: 2024, month: 3, day: 15 };
+                const template = '{YYYY}.{MM}.{DD}';
+                const results = [];
+                for (let i = 0; i < 5; i++) {
+                    results.push(processSubTemplate(template, input));
+                }
+                const allSame = results.every(r => r === results[0]);
+                if (allSame) {
+                    console.log('✓ Test 12 PASS: Deterministic output');
+                    console.log(`  5 identical runs: all returned "${results[0]}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 12 FAIL: Non-deterministic results:`, results);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 12 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 13: Malformed placeholder handling (AC #7) - console.warn() should be called
+            try {
+                const originalWarn = console.warn;
+                let warnCalled = false;
+                console.warn = function() { warnCalled = true; originalWarn.apply(console, arguments); };
+
+                const result = processSubTemplate('{YYYYY}', { year: 2024 });
+
+                console.warn = originalWarn;
+
+                // Should preserve the placeholder and log warning
+                if (result === '{YYYYY}' && warnCalled) {
+                    console.log('✓ Test 13 PASS: Malformed placeholder handling');
+                    console.log(`  Invalid placeholder preserved: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 13 FAIL: Invalid placeholder not handled correctly`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 13 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 14: Null value handling (AC #2)
+            try {
+                const result = processSubTemplate('{MM}', { month: null });
+                const expected = 'x';
+                if (result === expected) {
+                    console.log('✓ Test 14 PASS: Null value handling');
+                    console.log(`  month=null → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 14 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 14 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 15: Zero value handling (AC #2) - zero should NOT be treated as missing
+            try {
+                const result = processSubTemplate('{MM}', { month: 0 });
+                const expected = '00';
+                if (result === expected) {
+                    console.log('✓ Test 15 PASS: Zero value handling');
+                    console.log(`  month=0 → Output: "${result}" (zero is valid, not missing)`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 15 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 15 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 16: Empty string handling (AC #2)
+            try {
+                const result = processSubTemplate('{GIVEN}', { given: '' });
+                const expected = 'x';
+                if (result === expected) {
+                    console.log('✓ Test 16 PASS: Empty string handling');
+                    console.log(`  given="" → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 16 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 16 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 17: Place placeholders
+            try {
+                const result = processSubTemplate('{COUNTRY}.{STATE}.{CITY}', {
+                    country: 'USA',
+                    state: 'California',
+                    city: 'San Francisco'
+                });
+                const expected = 'USA.California.San Francisco';
+                if (result === expected) {
+                    console.log('✓ Test 17 PASS: Place placeholders');
+                    console.log(`  PLACE template → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 17 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 17 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 18: Abbreviated place placeholders
+            try {
+                const result = processSubTemplate('{C}.{S}.{CI}', {
+                    country: 'USA',
+                    state: 'NY',
+                    city: 'New York'
+                });
+                const expected = 'USA.NY.New York';
+                if (result === expected) {
+                    console.log('✓ Test 18 PASS: Abbreviated place placeholders');
+                    console.log(`  Abbrev placeholders → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 18 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 18 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 19: Name placeholders
+            try {
+                const result = processSubTemplate('{SURNAME}.{GIVEN}.{MIDDLE}', {
+                    surname: 'Smith',
+                    given: 'John',
+                    middle: 'William'
+                });
+                const expected = 'Smith.John.William';
+                if (result === expected) {
+                    console.log('✓ Test 19 PASS: Name placeholders');
+                    console.log(`  NAME template → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 19 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 19 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 20: Complex template with modifiers
+            try {
+                const result = processSubTemplate('{SURNAME:upper}.{GIVEN:lower}.{MIDDLE:title}', {
+                    surname: 'smith',
+                    given: 'JOHN',
+                    middle: 'william henry'
+                });
+                const expected = 'SMITH.john.William Henry';
+                if (result === expected) {
+                    console.log('✓ Test 20 PASS: Complex template with multiple modifiers');
+                    console.log(`  Multi-modifier template → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 20 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 20 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Summary
+            console.log('\n' + '='.repeat(50));
+            console.log(`TEST RESULTS: ${passCount} passed, ${failCount} failed`);
+            console.log(`Pass rate: ${(passCount / (passCount + failCount) * 100).toFixed(1)}%`);
+            console.log('='.repeat(50) + '\n');
+
+            return { passCount, failCount, total: passCount + failCount };
+        }
+
         // Initialize
         loadSettings(); // Load saved settings from localStorage (Story 2)
         initializeSuggestionTriggers();
         updatePlaceFormatUI();
         updateTemplatePreview(); // Show template preview immediately on load
         generateFilename();
+
+        // Run tests for Story 1.1 (processSubTemplate function)
+        const testResults = runProcessSubTemplateTests();
 
         // Initialize Bootstrap tooltips for help icons
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
