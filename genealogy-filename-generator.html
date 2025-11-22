@@ -950,6 +950,16 @@
                                     </div>
                                 </div>
 
+                                <!-- Story 1.4: PLACE Sub-template Input -->
+                                <div class="mb-3">
+                                    <label for="placeSubtemplateInput" class="form-label fw-semibold">Place Sub-template:</label>
+                                    <input type="text" id="placeSubtemplateInput" class="form-control font-monospace" maxlength="200" placeholder="Example: {COUNTRY}.{STATE}.{CITY}">
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Define how places are formatted in your filenames. Available: {COUNTRY}/{C}, {STATE}/{S}, {COUNTY}/{CO}, {CITY}/{CI}. Leave blank to use default: {COUNTRY}.{STATE}.{COUNTY}.{CITY}
+                                    </div>
+                                </div>
+
                                 <!-- Additional People Name Format Section -->
                                 <h6 class="mb-3 mt-4"><i class="bi bi-people me-2"></i>Additional People Name Format</h6>
 
@@ -1050,6 +1060,7 @@
             version: '1.0',
             filenameTemplate: '',
             dateSubtemplate: '{YYYY}.{MM}.{DD}',  // Story 1.3: Default date template
+            placeSubtemplate: '{COUNTRY}.{STATE}.{COUNTY}.{CITY}',  // Story 1.4: Default place template
             nameFormat: '{GIVEN}.{SURNAME}|+',
             useCustomTemplate: false,
             lastUpdated: null
@@ -1134,6 +1145,7 @@
             // Settings tab elements
             filenameTemplate: document.getElementById('filenameTemplate'),
             dateSubtemplateInput: document.getElementById('dateSubtemplateInput'),  // Story 1.3: DATE sub-template input
+            placeSubtemplateInput: document.getElementById('placeSubtemplateInput'),  // Story 1.4: PLACE sub-template input
             nameFormatInput: document.getElementById('nameFormatInput'),
             templatePreview: document.getElementById('templatePreview'),
             resetTemplate: document.getElementById('resetTemplate'),
@@ -1181,6 +1193,13 @@
         elements.dateSubtemplateInput.addEventListener('input', function() {
             userSettings.dateSubtemplate = this.value || '{YYYY}.{MM}.{DD}';  // Use default if empty
             generateFilename();  // Regenerate filename with new date template
+            saveSettings();
+        });
+
+        // Story 1.4: placeSubtemplate field event listener
+        elements.placeSubtemplateInput.addEventListener('input', function() {
+            userSettings.placeSubtemplate = this.value || '{COUNTRY}.{STATE}.{COUNTY}.{CITY}';  // Use default if empty
+            generateFilename();  // Regenerate filename with new place template
             saveSettings();
         });
 
@@ -3297,28 +3316,12 @@
         function getFormattedPlace() {
             let formattedPlace = '';
             if (elements.place.value) {
-                // Parse place input (smallest to largest: City, County, State, Country)
-                const placeParts = elements.place.value.split(',').map(part => part.trim());
+                // Story 1.4: Use PLACE sub-template for formatting if available
+                const placeTemplate = userSettings.placeSubtemplate || '{COUNTRY}.{STATE}.{COUNTY}.{CITY}';
+                formattedPlace = processPlaceSubtemplate(elements.place.value, placeTemplate);
 
-                // Ensure we have exactly 4 parts, padding with empty strings if needed
-                while (placeParts.length < 4) {
-                    placeParts.push('');
-                }
-
-                // For filename: reverse order (largest to smallest) and format
-                const reversedParts = [...placeParts].reverse();
-
-                // Apply country abbreviation to the first element (country) BEFORE formatting
-                if (reversedParts[0]) {
-                    reversedParts[0] = getCountryAbbreviation(reversedParts[0]) || reversedParts[0];
-                }
-
-                // Now format all parts for filename (spaces to hyphens)
-                const formattedParts = reversedParts.map(part => part ? formatForFilename(part) : '');
-
-                formattedPlace = formattedParts
-                    .map(part => part || 'x')  // Replace empty parts with 'x'
-                    .join('.');
+                // Format the result for filename (spaces to hyphens)
+                formattedPlace = formatForFilename(formattedPlace);
             } else {
                 formattedPlace = 'x';
             }
@@ -3651,6 +3654,88 @@
 
             // Use Story 1.1 processSubTemplate to apply the template
             const result = processSubTemplate(dateTemplate, data, { missingValueHandler: 'x' });
+            return result;
+        }
+
+        // Story 1.4: Parse place input and extract components (COUNTRY, STATE, COUNTY, CITY)
+        // Handles GEDCOM format: "City, County, State, Country" (comma-separated)
+        // Also handles single component places (e.g., just "London" or just "USA")
+        function parsePlaceInput(placeString) {
+            if (!placeString || placeString.trim() === '') {
+                return { country: 'x', state: 'x', county: 'x', city: 'x' };
+            }
+
+            const trimmed = placeString.trim();
+
+            // Split by comma to get individual components
+            const parts = trimmed.split(',').map(part => part.trim());
+
+            // GEDCOM format: City, County, State, Country (4 components from smallest to largest)
+            // We need to fill: { city, county, state, country }
+
+            let city = 'x', county = 'x', state = 'x', country = 'x';
+
+            // Determine how many parts we have and map them accordingly
+            if (parts.length === 4) {
+                // Full GEDCOM format: City, County, State, Country
+                city = parts[0] || 'x';
+                county = parts[1] || 'x';
+                state = parts[2] || 'x';
+                country = parts[3] || 'x';
+            } else if (parts.length === 3) {
+                // Assume: City, State, Country (skip county)
+                city = parts[0] || 'x';
+                state = parts[1] || 'x';
+                country = parts[2] || 'x';
+            } else if (parts.length === 2) {
+                // Assume: City, Country OR State, Country
+                // Heuristic: if first part is short and uppercase-ish, it's a state code
+                // Otherwise, treat first as city
+                city = parts[0] || 'x';
+                country = parts[1] || 'x';
+            } else if (parts.length === 1) {
+                // Single component: try to guess what it is
+                // Common heuristics:
+                // - If it's 2-3 chars and all uppercase: likely a country code
+                // - Otherwise: could be city or country
+                // For now, treat single component as city if it looks like a place, otherwise country
+                const single = parts[0];
+
+                // Common country codes and abbreviations
+                const countryCodes = ['USA', 'UK', 'CA', 'AU', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'CH', 'SE', 'NO', 'DK'];
+                const isCountryCode = countryCodes.some(code => single.toUpperCase() === code) || single.length <= 3;
+
+                if (isCountryCode || single.toUpperCase() === single) {
+                    country = single;
+                } else {
+                    city = single;
+                }
+            }
+
+            return { country, state, county, city };
+        }
+
+        // Story 1.4: Process PLACE sub-template with custom place formatting
+        // Uses parsePlaceInput to extract components, then applies template
+        function processPlaceSubtemplate(placeString, template) {
+            // Use default template if empty: reverse hierarchy matching v1.0.3
+            const placeTemplate = template || '{COUNTRY}.{STATE}.{COUNTY}.{CITY}';
+
+            // Parse place input to extract components
+            const placeComponents = parsePlaceInput(placeString);
+
+            // Create data object for processSubTemplate
+            // Note: processSubTemplate uses a keyMap that recognizes COUNTRY/C, STATE/S, COUNTY/CO, CITY/CI
+            const data = {
+                country: placeComponents.country === 'x' ? null : placeComponents.country,
+                state: placeComponents.state === 'x' ? null : placeComponents.state,
+                county: placeComponents.county === 'x' ? null : placeComponents.county,
+                city: placeComponents.city === 'x' ? null : placeComponents.city
+            };
+
+            // Use Story 1.1 processSubTemplate to apply the template
+            // This will handle placeholder replacement, padding (if applicable), and format modifiers
+            const result = processSubTemplate(placeTemplate, data, { missingValueHandler: 'x' });
             return result;
         }
 
@@ -4836,6 +4921,11 @@
                         elements.dateSubtemplateInput.value = userSettings.dateSubtemplate;
                     }
 
+                    // Story 1.4: Populate placeSubtemplate input if exists
+                    if (userSettings.placeSubtemplate && elements.placeSubtemplateInput) {
+                        elements.placeSubtemplateInput.value = userSettings.placeSubtemplate;
+                    }
+
                     // Story 4: Populate nameFormat input if exists
                     if (userSettings.nameFormat && elements.nameFormatInput) {
                         elements.nameFormatInput.value = userSettings.nameFormat;
@@ -4866,6 +4956,7 @@
                     // Update userSettings object
                     userSettings.filenameTemplate = elements.filenameTemplate.value.trim();
                     userSettings.dateSubtemplate = elements.dateSubtemplateInput.value.trim() || '{YYYY}.{MM}.{DD}';  // Story 1.3
+                    userSettings.placeSubtemplate = elements.placeSubtemplateInput.value.trim() || '{COUNTRY}.{STATE}.{COUNTY}.{CITY}';  // Story 1.4
                     userSettings.nameFormat = elements.nameFormatInput.value.trim() || '{GIVEN}.{SURNAME}|+';
                     userSettings.filePath = elements.filePath.value.trim();
                     userSettings.useCustomTemplate = userSettings.filenameTemplate.length > 0;
