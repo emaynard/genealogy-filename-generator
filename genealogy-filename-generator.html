@@ -3542,23 +3542,24 @@
                 delimiter = nameFormat.substring(pipeIndex + 1);
             }
 
-            // Format each person using the template
+            // Format each person using processNameSubtemplate() for consistency
+            // This ensures format modifiers (:upper, :lower, :title, :abbrev) work correctly
             const formattedPeople = additionalPeople.map(person => {
-                let formatted = formatTemplate;
+                // Construct full name string from person object
+                const nameParts = [
+                    person.givenName || '',
+                    person.middleName || '',
+                    person.surname || ''
+                ].filter(part => part.trim() !== '');
 
-                // Replace {GIVEN} placeholder
-                const givenName = person.givenName || '';
-                formatted = formatted.replace(/{GIVEN}/g, givenName ? formatForFilename(givenName) : '');
+                const fullName = nameParts.join(' ') || '';
 
-                // Replace {SURNAME} placeholder (uppercase)
-                const surname = person.surname || '';
-                formatted = formatted.replace(/{SURNAME}/g, surname ? surname.toUpperCase() : '');
+                // Use processNameSubtemplate() to apply template with modifier support
+                // This function already handles format modifiers and missing components
+                const formatted = processNameSubtemplate(fullName, formatTemplate);
 
-                // Replace {MIDDLE} placeholder
-                const middleName = person.middleName || '';
-                formatted = formatted.replace(/{MIDDLE}/g, middleName ? formatForFilename(middleName) : '');
-
-                return formatted;
+                // Format for filename (replace spaces with hyphens, etc.)
+                return formatForFilename(formatted);
             });
 
             // Join all formatted people with the delimiter
