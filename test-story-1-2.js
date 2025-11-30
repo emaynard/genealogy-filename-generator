@@ -243,7 +243,9 @@ function runProcessSubTemplateTests() {
             originalWarn.apply(console, arguments);
         };
 
-        const result = processSubTemplate('{NAME:invalid}', { name: 'Smith' });
+        // Fixed: Use valid placeholder {SURNAME} with invalid modifier :invalid
+        // Previous test used {NAME:invalid} which is an unknown placeholder, not a modifier test
+        const result = processSubTemplate('{SURNAME:invalid}', { surname: 'Smith' });
 
         console.warn = originalWarn;
 
