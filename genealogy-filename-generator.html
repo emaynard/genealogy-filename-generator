@@ -333,6 +333,32 @@
             background: transparent;
             font-weight: bold;
         }
+
+        /* Story 1.7: Template Validation Styling */
+        /* Validation message warning styling (orange/amber, not red) */
+        .form-text.text-warning {
+            color: #ff8c00; /* Orange/amber for warnings */
+        }
+
+        /* Validation message success styling (green) */
+        .form-text.text-success {
+            color: #28a745; /* Bootstrap green for success */
+        }
+
+        /* Fade-in animation for success indicator (AC #5) */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .validation-success {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        /* Icon spacing for validation messages */
+        .validation-message-icon {
+            margin-right: 0.25rem;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -933,6 +959,8 @@
                                         <i class="bi bi-info-circle me-1"></i>
                                         Enter your preferred filename template using the placeholders above.
                                     </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="filenameTemplateValidationMessage" class="form-text"></div>
                                 </div>
 
                                 <!-- DATE Sub-template Section (Story 1.3) -->
@@ -960,6 +988,8 @@
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how dates are formatted in your filenames. Leave blank to use default: {YYYY}.{MM}.{DD}
                                     </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="dateValidationMessage" class="form-text"></div>
                                 </div>
 
                                 <!-- Story 1.4: PLACE Sub-template Input -->
@@ -973,6 +1003,8 @@
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how places are formatted in your filenames. Available: {COUNTRY}/{C}, {STATE}/{S}, {COUNTY}/{CO}, {CITY}/{CI}. Leave blank to use default: {COUNTRY}.{STATE}.{COUNTY}.{CITY}
                                     </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="placeValidationMessage" class="form-text"></div>
                                 </div>
 
                                 <!-- Story 1.5: NAME Sub-template Input -->
@@ -986,6 +1018,8 @@
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how the primary person's name is formatted. Available: {SURNAME}, {GIVEN}, {MIDDLE}. Leave blank to use default: {SURNAME:upper}.{GIVEN}
                                     </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="nameValidationMessage" class="form-text"></div>
                                 </div>
 
                                 <!-- Additional People Name Format Section -->
@@ -1013,6 +1047,8 @@
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how additional people names are formatted. Use {GIVEN}, {SURNAME}, {MIDDLE} placeholders. Separate format from delimiter with pipe (|).
                                     </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="nameFormatValidationMessage" class="form-text"></div>
                                 </div>
 
                                 <!-- Preview Section -->
@@ -1248,6 +1284,46 @@
             updateTemplatePreview();
             saveSettings();
         });
+
+        // Story 1.7: Template validation event listeners (500ms debounced)
+        // AC #4: Validation appears 500ms after user stops typing
+        // AC #6: Non-blocking validation (warnings only, doesn't prevent saving)
+        const debouncedDateValidation = debounce(function() {
+            const template = elements.dateSubtemplateInput.value;
+            const result = validateTemplate(template, 'DATE');
+            displayValidationFeedback('dateSubtemplate', result);
+        }, 500);
+
+        const debouncedPlaceValidation = debounce(function() {
+            const template = elements.placeSubtemplateInput.value;
+            const result = validateTemplate(template, 'PLACE');
+            displayValidationFeedback('placeSubtemplate', result);
+        }, 500);
+
+        const debouncedNameValidation = debounce(function() {
+            const template = elements.nameSubtemplateInput.value;
+            const result = validateTemplate(template, 'NAME');
+            displayValidationFeedback('nameSubtemplate', result);
+        }, 500);
+
+        const debouncedFilenameTemplateValidation = debounce(function() {
+            const template = elements.filenameTemplate.value;
+            const result = validateTemplate(template, 'CUSTOM');
+            displayValidationFeedback('filenameTemplate', result);
+        }, 500);
+
+        const debouncedNameFormatValidation = debounce(function() {
+            const template = elements.nameFormatInput.value;
+            const result = validateTemplate(template, 'NAME');
+            displayValidationFeedback('nameFormat', result);
+        }, 500);
+
+        // Attach debounced validation to input events
+        elements.dateSubtemplateInput.addEventListener('input', debouncedDateValidation);
+        elements.placeSubtemplateInput.addEventListener('input', debouncedPlaceValidation);
+        elements.nameSubtemplateInput.addEventListener('input', debouncedNameValidation);
+        elements.filenameTemplate.addEventListener('input', debouncedFilenameTemplateValidation);
+        elements.nameFormatInput.addEventListener('input', debouncedNameFormatValidation);
 
         elements.resetTemplate.addEventListener('click', resetTemplate);
 
@@ -3542,6 +3618,118 @@
             return str.replace(/\w\S*/g, (txt) =>
                 txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
             );
+        }
+
+        // Story 1.7: Template Validation Functions
+        // Validates template syntax against known placeholders for template type
+        // Returns: {valid: boolean, errors: array of error messages}
+        // AC #1: Validates template syntax with specific error messages
+        // AC #3: Error messages include suggestions for correct syntax
+        function validateTemplate(templateString, templateType) {
+            // Return valid if template is empty (empty templates are allowed)
+            if (!templateString || templateString.trim() === '') {
+                return { valid: true, errors: [] };
+            }
+
+            const errors = [];
+
+            // Known placeholders by template type (from processSubTemplate keyMap at line 3441)
+            const KNOWN_PLACEHOLDERS = {
+                DATE: ['YYYY', 'YY', 'MM', 'M', 'DD', 'D'],
+                PLACE: ['COUNTRY', 'C', 'STATE', 'S', 'COUNTY', 'CO', 'CITY', 'CI'],
+                NAME: ['SURNAME', 'GIVEN', 'MIDDLE'],
+                CUSTOM: ['TYPE', 'PLACE', 'DATE', 'NAME', 'SURNAME', 'GIVEN', 'MIDDLE', 'INFO', 'EXT', 'AdditionalPeople']
+            };
+
+            // Known modifiers (from applyModifier switch at line 3554)
+            const KNOWN_MODIFIERS = ['upper', 'lower', 'title', 'abbrev'];
+
+            // Regex pattern matching processSubTemplate (line 3436)
+            const placeholderRegex = /\{([A-Z]+)(?::([a-zA-Z:]+))?\}/g;
+
+            // Extract all placeholders from template
+            let match;
+            while ((match = placeholderRegex.exec(templateString)) !== null) {
+                const placeholder = match[1]; // e.g., "YYYY" or "SURNAME"
+                const modifiers = match[2]; // e.g., "upper" or "upper:lower:title"
+
+                // Validate placeholder name
+                const knownPlaceholders = KNOWN_PLACEHOLDERS[templateType] || [];
+                if (!knownPlaceholders.includes(placeholder)) {
+                    // AC #1: Unknown placeholder error with suggestion
+                    const suggestion = `Unknown placeholder {${placeholder}}. Available: ${knownPlaceholders.map(p => `{${p}}`).join(', ')}`;
+                    errors.push(suggestion);
+                }
+
+                // Validate modifiers if present
+                if (modifiers) {
+                    // Split multiple modifiers (e.g., "upper:lower" → ["upper", "lower"])
+                    const modifierList = modifiers.split(':');
+                    modifierList.forEach(mod => {
+                        if (!KNOWN_MODIFIERS.includes(mod.toLowerCase())) {
+                            // AC #1: Unknown modifier error with suggestion
+                            const suggestion = `Unknown modifier ':${mod}'. Available: :${KNOWN_MODIFIERS.join(', :')}`;
+                            errors.push(suggestion);
+                        }
+                    });
+                }
+            }
+
+            // Check for malformed placeholder syntax (unclosed braces)
+            // AC #1: Malformed syntax detection
+            const openBraces = (templateString.match(/\{/g) || []).length;
+            const closeBraces = (templateString.match(/\}/g) || []).length;
+            if (openBraces !== closeBraces) {
+                errors.push('Check your template syntax. Placeholders should use {PLACEHOLDER} format with matching braces.');
+            }
+
+            return {
+                valid: errors.length === 0,
+                errors: errors
+            };
+        }
+
+        // Story 1.7: Display validation feedback in UI
+        // AC #2: Warning messages use .form-text.text-warning styling (orange/amber)
+        // AC #5: Valid templates show success indicator with fade-in animation
+        function displayValidationFeedback(inputElementId, validationResult) {
+            const validationContainer = document.getElementById(inputElementId + 'ValidationMessage');
+            if (!validationContainer) return;
+
+            // Clear previous validation message
+            validationContainer.innerHTML = '';
+            validationContainer.className = 'form-text';
+
+            if (validationResult.valid) {
+                // AC #5: Show success indicator with fade-in animation
+                validationContainer.className = 'form-text text-success validation-success';
+                validationContainer.innerHTML = '<i class="bi bi-check-circle-fill validation-message-icon"></i>Valid template';
+            } else {
+                // AC #2: Show warning messages (orange/amber, not red)
+                // AC #3: Include suggestions for correct syntax
+                validationContainer.className = 'form-text text-warning';
+                const errorMessages = validationResult.errors.join('<br>');
+                validationContainer.innerHTML = `<i class="bi bi-exclamation-triangle-fill validation-message-icon"></i>${errorMessages}`;
+            }
+        }
+
+        // Story 1.7: Clear validation message
+        function clearValidationMessage(inputElementId) {
+            const validationContainer = document.getElementById(inputElementId + 'ValidationMessage');
+            if (validationContainer) {
+                validationContainer.innerHTML = '';
+                validationContainer.className = 'form-text';
+            }
+        }
+
+        // Story 1.7: Debounce utility function
+        // AC #4: Validation debounced 500ms after user stops typing
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
         }
 
         // Helper function: Format additional people using nameFormat template
