@@ -114,6 +114,11 @@
             display: none !important;
         }
 
+        /* Story 1.6: Template Configuration UI - Template inputs styling */
+        .template-input {
+            min-width: 300px;
+        }
+
         .additional-person-row {
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -607,7 +612,7 @@
                     <div class="card-header bg-success text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0"><i class="bi bi-file-earmark-text me-2"></i>Generated Output</h5>
-                            <button id="toggleSettings" class="btn btn-sm btn-outline-light" type="button">
+                            <button id="toggleSettings" class="btn btn-sm btn-outline-light" type="button" aria-label="Template settings">
                                 <i class="bi bi-gear"></i>
                             </button>
                         </div>
@@ -919,8 +924,11 @@
 
                                 <!-- Template Input Field -->
                                 <div class="mb-3">
-                                    <label for="filenameTemplate" class="form-label fw-semibold">Custom Template:</label>
-                                    <input type="text" id="filenameTemplate" class="form-control font-monospace" maxlength="500" placeholder="{TYPE}_{PLACE}_{DATE}_{SURNAME}.{GIVEN}.{MIDDLE}_{INFO}{EXT}">
+                                    <label for="filenameTemplate" class="form-label fw-semibold">
+                                        Custom Template:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Available: {TYPE}, {PLACE}, {DATE}, {NAME}, {SURNAME}, {GIVEN}, {MIDDLE}, {INFO}, {EXT}, {AdditionalPeople}, {{ }}"></i>
+                                    </label>
+                                    <input type="text" id="filenameTemplate" class="form-control font-monospace template-input" maxlength="500" placeholder="{TYPE}_{PLACE}_{DATE}_{SURNAME}.{GIVEN}.{MIDDLE}_{INFO}{EXT}" aria-label="Custom filename template">
                                     <div class="form-text">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Enter your preferred filename template using the placeholders above.
@@ -943,8 +951,11 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="dateSubtemplateInput" class="form-label fw-semibold">Date Sub-template:</label>
-                                    <input type="text" id="dateSubtemplateInput" class="form-control font-monospace" maxlength="200" placeholder="Example: {YYYY}.{MM}.{DD}">
+                                    <label for="dateSubtemplateInput" class="form-label fw-semibold">
+                                        Date Sub-template:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Available: {YYYY}, {YY}, {MM}, {M}, {DD}, {D}"></i>
+                                    </label>
+                                    <input type="text" id="dateSubtemplateInput" class="form-control font-monospace template-input" maxlength="200" placeholder="Example: {YYYY}.{MM}.{DD}" aria-label="Date sub-template">
                                     <div class="form-text">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how dates are formatted in your filenames. Leave blank to use default: {YYYY}.{MM}.{DD}
@@ -953,8 +964,11 @@
 
                                 <!-- Story 1.4: PLACE Sub-template Input -->
                                 <div class="mb-3">
-                                    <label for="placeSubtemplateInput" class="form-label fw-semibold">Place Sub-template:</label>
-                                    <input type="text" id="placeSubtemplateInput" class="form-control font-monospace" maxlength="200" placeholder="Example: {COUNTRY}.{STATE}.{CITY}">
+                                    <label for="placeSubtemplateInput" class="form-label fw-semibold">
+                                        Place Sub-template:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Available: {COUNTRY}/{C}, {STATE}/{S}, {COUNTY}/{CO}, {CITY}/{CI}"></i>
+                                    </label>
+                                    <input type="text" id="placeSubtemplateInput" class="form-control font-monospace template-input" maxlength="200" placeholder="Example: {COUNTRY}.{STATE}.{CITY}" aria-label="Place sub-template">
                                     <div class="form-text">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how places are formatted in your filenames. Available: {COUNTRY}/{C}, {STATE}/{S}, {COUNTY}/{CO}, {CITY}/{CI}. Leave blank to use default: {COUNTRY}.{STATE}.{COUNTY}.{CITY}
@@ -963,8 +977,11 @@
 
                                 <!-- Story 1.5: NAME Sub-template Input -->
                                 <div class="mb-3">
-                                    <label for="nameSubtemplateInput" class="form-label fw-semibold">Primary Person Name Sub-template:</label>
-                                    <input type="text" id="nameSubtemplateInput" class="form-control font-monospace" maxlength="200" placeholder="Example: {SURNAME:upper}.{GIVEN}">
+                                    <label for="nameSubtemplateInput" class="form-label fw-semibold">
+                                        Primary Person Name Sub-template:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Available: {SURNAME}, {GIVEN}, {MIDDLE}. Modifiers: :upper, :lower, :title, :abbrev"></i>
+                                    </label>
+                                    <input type="text" id="nameSubtemplateInput" class="form-control font-monospace template-input" maxlength="200" placeholder="Example: {SURNAME:upper}.{GIVEN}" aria-label="Primary person name sub-template">
                                     <div class="form-text">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how the primary person's name is formatted. Available: {SURNAME}, {GIVEN}, {MIDDLE}. Leave blank to use default: {SURNAME:upper}.{GIVEN}
@@ -987,8 +1004,11 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="nameFormatInput" class="form-label fw-semibold">Additional People Name Format:</label>
-                                    <input type="text" id="nameFormatInput" class="form-control font-monospace" maxlength="200" placeholder="{GIVEN}.{SURNAME}|+">
+                                    <label for="nameFormatInput" class="form-label fw-semibold">
+                                        Additional People Name Format:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Format: [template]|[delimiter]. Available: {GIVEN}, {SURNAME}, {MIDDLE}"></i>
+                                    </label>
+                                    <input type="text" id="nameFormatInput" class="form-control font-monospace template-input" maxlength="200" placeholder="{GIVEN}.{SURNAME}|+" aria-label="Additional people name format">
                                     <div class="form-text">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how additional people names are formatted. Use {GIVEN}, {SURNAME}, {MIDDLE} placeholders. Separate format from delimiter with pipe (|).
