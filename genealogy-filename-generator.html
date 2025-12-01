@@ -5371,6 +5371,117 @@
             }
         }
 
+        // ============================================================
+        // TEMPLATE PERSISTENCE (Story 1.8: Template Persistence to localStorage)
+        // ============================================================
+
+        // AC #2: Default template configuration constant with version 2.0.0
+        const DEFAULT_TEMPLATE_CONFIG = {
+            version: "2.0.0",
+            customFilenameTemplate: "{TYPE}_{PLACE}_{DATE}_{NAME}_{INFO}.{EXT}",
+            dateSubTemplate: "{YYYY}.{MM}.{DD}",
+            placeSubTemplate: "{COUNTRY}.{STATE}.{COUNTY}.{CITY}",
+            nameSubTemplate: "{SURNAME:upper}.{GIVEN}",
+            additionalPeopleFormat: "{GIVEN}.{SURNAME}|+",
+            lastUpdated: Date.now(),
+            migrated: false
+        };
+
+        /**
+         * Save template configuration to localStorage
+         * AC #1: Saves to localStorage with key 'genealogy_templates'
+         * AC #3: Atomic save - all fields saved together
+         * AC #4: Handles QuotaExceededError gracefully
+         * @returns {Object} {success: boolean, error?: string}
+         */
+        function saveTemplateConfig() {
+            try {
+                // AC #3: Read ALL template values atomically before saving
+                const config = {
+                    version: "2.0.0",
+                    customFilenameTemplate: elements.filenameTemplate.value || DEFAULT_TEMPLATE_CONFIG.customFilenameTemplate,
+                    dateSubTemplate: elements.dateSubtemplateInput.value || DEFAULT_TEMPLATE_CONFIG.dateSubTemplate,
+                    placeSubTemplate: elements.placeSubtemplateInput.value || DEFAULT_TEMPLATE_CONFIG.placeSubTemplate,
+                    nameSubTemplate: elements.nameSubtemplateInput.value || DEFAULT_TEMPLATE_CONFIG.nameSubTemplate,
+                    additionalPeopleFormat: elements.nameFormatInput.value || DEFAULT_TEMPLATE_CONFIG.additionalPeopleFormat,
+                    lastUpdated: Date.now(),
+                    migrated: false  // Will be set by Story 1.10 migration logic
+                };
+
+                // AC #3: Single atomic localStorage write
+                localStorage.setItem('genealogy_templates', JSON.stringify(config));
+
+                return { success: true };
+            } catch (e) {
+                // AC #4: Handle quota exceeded error specifically
+                if (e.name === 'QuotaExceededError') {
+                    showStorageQuotaError();
+                    return {
+                        success: false,
+                        error: 'Storage quota exceeded. Clear browsing data or reduce template length.'
+                    };
+                }
+
+                console.error('Failed to save templates:', e);
+                return { success: false, error: e.message };
+            }
+        }
+
+        /**
+         * Show user-friendly error message for storage quota exceeded
+         * AC #4: Non-blocking warning displayed to user
+         */
+        function showStorageQuotaError() {
+            // Create or update alert element
+            let alertDiv = document.getElementById('storage-quota-alert');
+            if (!alertDiv) {
+                alertDiv = document.createElement('div');
+                alertDiv.id = 'storage-quota-alert';
+                alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.innerHTML = `
+                    <strong>Storage Limit Reached</strong>
+                    Cannot save template settings. Your browser's localStorage is full.
+                    Try clearing browsing data or reducing template length.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+
+                // Insert at top of settings section
+                const settingsCard = elements.settingsCard || document.body;
+                settingsCard.insertBefore(alertDiv, settingsCard.firstChild);
+            }
+        }
+
+        /**
+         * Initialize auto-save event listeners for template inputs
+         * AC #1: Debounced auto-save triggers 300ms after user stops typing
+         * AC #6: Save operation is non-blocking, doesn't interrupt typing
+         */
+        function initializeAutoSave() {
+            // AC #1: Create debounced save function with 300ms delay
+            const debouncedSave = debounce(saveTemplateConfig, 300);
+
+            // Template input IDs to attach auto-save listeners
+            const templateInputs = [
+                'filenameTemplate',
+                'dateSubtemplateInput',
+                'placeSubtemplateInput',
+                'nameSubtemplateInput',
+                'nameFormatInput'
+            ];
+
+            // AC #1: Attach input event listeners to all template fields
+            templateInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    // AC #6: Input event allows user to continue typing without interruption
+                    input.addEventListener('input', debouncedSave);
+                } else {
+                    console.warn(`Template input not found: ${inputId}`);
+                }
+            });
+        }
+
         // ============================================================================
         // TEST SUITE FOR processSubTemplate() - Story 1.1
         // ============================================================================
@@ -5989,6 +6100,7 @@
 
         // Initialize
         loadSettings(); // Load saved settings from localStorage (Story 2)
+        initializeAutoSave(); // Story 1.8: Initialize template auto-save (300ms debounced)
         initializeSuggestionTriggers();
         updatePlaceFormatUI();
         updateTemplatePreview(); // Show template preview immediately on load
