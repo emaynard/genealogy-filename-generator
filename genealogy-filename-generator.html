@@ -5452,6 +5452,85 @@
             }
         }
 
+        // ============================================================
+        // TEMPLATE LOADING (Story 1.9: Template Loading on Application Startup)
+        // ============================================================
+
+        /**
+         * Load template configuration from localStorage on application startup
+         * AC #1: Reads from localStorage key 'genealogy_templates'
+         * AC #2: Populates all template input fields with saved values
+         * AC #3: Uses default templates if localStorage is empty/corrupted
+         * AC #4: Handles malformed JSON gracefully (parse error → use defaults, log warning)
+         * AC #5: Loading completes in under 50ms
+         * AC #6: User sees custom templates immediately, no loading flicker
+         * @returns {Object} {success: boolean, config: object, error?: string}
+         */
+        function loadTemplateConfig() {
+            try {
+                // AC #1: Read from localStorage
+                const saved = localStorage.getItem('genealogy_templates');
+
+                // AC #3: Handle missing key (first load or cleared storage)
+                if (!saved) {
+                    console.info('No saved templates found, using defaults');
+                    const defaultConfig = { ...DEFAULT_TEMPLATE_CONFIG };
+                    populateTemplateInputs(defaultConfig);
+                    return { success: true, config: defaultConfig };
+                }
+
+                // AC #4: Parse JSON with try-catch
+                const parsedData = JSON.parse(saved);
+
+                // AC #3: Merge with defaults for forward compatibility (handle missing fields)
+                const config = { ...DEFAULT_TEMPLATE_CONFIG, ...parsedData };
+
+                // AC #2: Populate template input fields
+                populateTemplateInputs(config);
+
+                console.info('Loaded template configuration:', config);
+                return { success: true, config };
+
+            } catch (e) {
+                // AC #4: Handle malformed JSON gracefully
+                if (e instanceof SyntaxError) {
+                    console.warn('Failed to parse saved templates (corrupted JSON), using defaults:', e);
+                } else {
+                    console.warn('Failed to load templates, using defaults:', e);
+                }
+
+                // AC #3: Always return valid defaults
+                const defaultConfig = { ...DEFAULT_TEMPLATE_CONFIG };
+                populateTemplateInputs(defaultConfig);
+                return { success: false, config: defaultConfig, error: e.message };
+            }
+        }
+
+        /**
+         * Populate template input fields with config values
+         * AC #2: Populates all 5 template input fields
+         * @param {Object} config - Template configuration object
+         */
+        function populateTemplateInputs(config) {
+            // AC #2: Populate all 5 template inputs
+            const inputs = {
+                'filenameTemplate': config.customFilenameTemplate,
+                'dateSubtemplateInput': config.dateSubTemplate,
+                'placeSubtemplateInput': config.placeSubTemplate,
+                'nameSubtemplateInput': config.nameSubTemplate,
+                'nameFormatInput': config.additionalPeopleFormat
+            };
+
+            Object.entries(inputs).forEach(([id, value]) => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = value;
+                } else {
+                    console.warn(`Template input not found: ${id}`);
+                }
+            });
+        }
+
         /**
          * Initialize auto-save event listeners for template inputs
          * AC #1: Debounced auto-save triggers 300ms after user stops typing
@@ -6099,6 +6178,8 @@
         }
 
         // Initialize
+        // Story 1.9: Load templates FIRST, before auto-save event listeners (critical order)
+        loadTemplateConfig(); // Load saved templates from localStorage
         loadSettings(); // Load saved settings from localStorage (Story 2)
         initializeAutoSave(); // Story 1.8: Initialize template auto-save (300ms debounced)
         initializeSuggestionTriggers();
