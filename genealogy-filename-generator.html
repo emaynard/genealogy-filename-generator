@@ -1291,19 +1291,19 @@
         const debouncedDateValidation = debounce(function() {
             const template = elements.dateSubtemplateInput.value;
             const result = validateTemplate(template, 'DATE');
-            displayValidationFeedback('dateSubtemplate', result);
+            displayValidationFeedback('date', result);
         }, 500);
 
         const debouncedPlaceValidation = debounce(function() {
             const template = elements.placeSubtemplateInput.value;
             const result = validateTemplate(template, 'PLACE');
-            displayValidationFeedback('placeSubtemplate', result);
+            displayValidationFeedback('place', result);
         }, 500);
 
         const debouncedNameValidation = debounce(function() {
             const template = elements.nameSubtemplateInput.value;
             const result = validateTemplate(template, 'NAME');
-            displayValidationFeedback('nameSubtemplate', result);
+            displayValidationFeedback('name', result);
         }, 500);
 
         const debouncedFilenameTemplateValidation = debounce(function() {
