@@ -4074,57 +4074,11 @@
                 }
             }
 
-            let formattedPlace = '';
-            if (elements.place.value) {
-                // Parse place input (smallest to largest: City, County, State, Country)
-                const placeParts = elements.place.value.split(',').map(part => part.trim());
-                
-                // Ensure we have exactly 4 parts, padding with empty strings if needed
-                while (placeParts.length < 4) {
-                    placeParts.push('');
-                }
-                
-                // For filename: reverse order (largest to smallest) and format
-                const reversedParts = [...placeParts].reverse();
-                
-                // Apply country abbreviation to the first element (country) BEFORE formatting
-                if (reversedParts[0]) {
-                    reversedParts[0] = getCountryAbbreviation(reversedParts[0]) || reversedParts[0];
-                }
-                
-                // Now format all parts for filename (spaces to hyphens)
-                const formattedParts = reversedParts.map(part => part ? formatForFilename(part) : '');
-                
-                formattedPlace = formattedParts
-                    .map(part => part || 'x')  // Replace empty parts with 'x'
-                    .join('.');
-            }
-            
-            // Get date from either genealogy input or precise date input
-            const currentDateValue = getCurrentDateValue();
-            let formattedDate;
-            
-            if (currentDateValue) {
-                // Use genealogical date formatting
-                formattedDate = formatGenealogyDateForFilename(currentDateValue);
-            } else {
-                formattedDate = 'x';
-            }
-            
-            // Generate names based on format and number of people
-            let formattedNames = '';
-            if (elements.surname.value) {
-                // Surname is uppercase, given names keep original case
-                formattedNames = formatForFilename(elements.surname.value).toUpperCase();
-                if (elements.givenName.value) {
-                    formattedNames += '.' + formatForFilename(elements.givenName.value);
-                    if (elements.middleName.value) {
-                        formattedNames += '.' + formatForFilename(elements.middleName.value);
-                    }
-                }
-            } else {
-                formattedNames = 'x';
-            }
+            // Story 1.11: Use sub-template processors (getFormattedDate, getFormattedPlace, getFormattedName)
+            // These integrate DATE, PLACE, and NAME sub-templates if configured in settings
+            const formattedPlace = getFormattedPlace();
+            const formattedDate = getFormattedDate();
+            const formattedNames = getFormattedName();
 
             // Handle additional people
             if (elements.includeAdditionalPeople.checked && additionalPeople.length > 0) {
