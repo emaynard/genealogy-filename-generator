@@ -5387,6 +5387,42 @@
             migrated: false
         };
 
+        // ============================================================
+        // LEGACY MIGRATION (Story 1.10: Legacy Name Format Migration)
+        // ============================================================
+
+        /**
+         * Legacy name format migration from v1.0.3 dropdown to NAME sub-template
+         * Maps old name_format_preference values to new template syntax
+         * AC #2: Migration mappings for all 4 legacy format variations
+         */
+        const LEGACY_NAME_FORMAT_MIGRATION = {
+            'SURNAME.Given': '{SURNAME:upper}.{GIVEN}',
+            'Given.SURNAME': '{GIVEN}.{SURNAME:upper}',
+            'SURNAME, Given': '{SURNAME:upper}, {GIVEN}',
+            'Given SURNAME': '{GIVEN} {SURNAME:upper}'
+        };
+
+        /**
+         * Migrate legacy name format preference to NAME sub-template
+         * AC #2: Converts legacy dropdown value to NAME sub-template
+         * AC #6: Returns default if no legacy format or unrecognized
+         * @param {string} legacyFormat - Legacy name format value
+         * @returns {string|null} Migrated NAME sub-template or null if no legacy data
+         */
+        function migrateLegacyNameFormat(legacyFormat) {
+            if (!legacyFormat) return null;
+
+            const migrated = LEGACY_NAME_FORMAT_MIGRATION[legacyFormat];
+            if (migrated) {
+                return migrated;
+            }
+
+            // AC #6: Unrecognized legacy format, use default
+            console.warn(`Unrecognized legacy name format: "${legacyFormat}", using default`);
+            return DEFAULT_TEMPLATE_CONFIG.nameSubTemplate;
+        }
+
         /**
          * Save template configuration to localStorage
          * AC #1: Saves to localStorage with key 'genealogy_templates'
@@ -5475,6 +5511,21 @@
                 if (!saved) {
                     console.info('No saved templates found, using defaults');
                     const defaultConfig = { ...DEFAULT_TEMPLATE_CONFIG };
+
+                    // Story 1.10: Check for legacy migration even on first load
+                    const legacyFormat = localStorage.getItem('name_format_preference');
+                    if (legacyFormat) {
+                        const migratedTemplate = migrateLegacyNameFormat(legacyFormat);
+                        if (migratedTemplate) {
+                            defaultConfig.nameSubTemplate = migratedTemplate;
+                            console.info(`Migrated legacy name format: "${legacyFormat}" → "${migratedTemplate}"`);
+                        }
+                    }
+                    defaultConfig.migrated = true; // Mark as migrated to skip future checks
+
+                    // Persist migration immediately
+                    localStorage.setItem('genealogy_templates', JSON.stringify(defaultConfig));
+
                     populateTemplateInputs(defaultConfig);
                     return { success: true, config: defaultConfig };
                 }
@@ -5484,6 +5535,24 @@
 
                 // AC #3: Merge with defaults for forward compatibility (handle missing fields)
                 const config = { ...DEFAULT_TEMPLATE_CONFIG, ...parsedData };
+
+                // Story 1.10: One-time migration check
+                // AC #1: Check for legacy setting, AC #4: Migration flag prevents re-migration
+                if (!config.migrated) {
+                    const legacyFormat = localStorage.getItem('name_format_preference');
+                    if (legacyFormat) {
+                        const migratedTemplate = migrateLegacyNameFormat(legacyFormat);
+                        if (migratedTemplate) {
+                            // AC #2: Migrate legacy preference to NAME sub-template
+                            config.nameSubTemplate = migratedTemplate;
+                            console.info(`Migrated legacy name format: "${legacyFormat}" → "${migratedTemplate}"`);
+                        }
+                    }
+                    // AC #4: Set migration flag to prevent re-migration
+                    config.migrated = true;
+                    // AC #3: Save the new NAME sub-template to localStorage
+                    localStorage.setItem('genealogy_templates', JSON.stringify(config));
+                }
 
                 // AC #2: Populate template input fields
                 populateTemplateInputs(config);
