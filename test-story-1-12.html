@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Story 1.12: Reset Templates to Defaults</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        .test-case {
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-case.pass {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .test-case.fail {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .test-status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .test-actions button {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .expected {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <h1 class="mb-4">
+            <i class="bi bi-arrow-counterclockwise text-primary"></i>
+            Test Story 1.12: Reset Templates to Defaults
+        </h1>
+
+        <div class="alert alert-info">
+            <strong>Testing Instructions:</strong>
+            <ol class="mb-0">
+                <li>Execute each test case in order</li>
+                <li>Follow the manual verification steps</li>
+                <li>Mark each test as PASS or FAIL</li>
+                <li>Note any issues in the observations section</li>
+            </ol>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Test Case 1: Confirmation Dialog -->
+                <div class="test-case" id="test-ac1">
+                    <div class="test-status">
+                        <span class="badge bg-secondary">AC #1</span>
+                        Test 1: Confirmation Dialog Appears
+                    </div>
+                    <p><strong>Objective:</strong> Verify that clicking "Reset to Defaults" shows confirmation dialog with correct message.</p>
+
+                    <div class="test-actions">
+                        <button class="btn btn-primary" onclick="runTest1()">
+                            <i class="bi bi-play-fill"></i> Run Test 1
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="markTest('test-ac1', 'pass')">Pass</button>
+                        <button class="btn btn-danger btn-sm" onclick="markTest('test-ac1', 'fail')">Fail</button>
+                    </div>
+
+                    <div class="expected">
+                        <strong>Expected Result:</strong>
+                        <ul class="mb-0">
+                            <li>Browser confirm dialog appears</li>
+                            <li>Message: "Reset all templates to defaults? Your custom templates will be lost."</li>
+                            <li>Dialog has OK and Cancel buttons</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-2">
+                        <strong>Manual Steps:</strong>
+                        <ol>
+                            <li>Click "Run Test 1" button</li>
+                            <li>Observe the confirmation dialog</li>
+                            <li>Click "Cancel" to close (don't confirm yet)</li>
+                            <li>Verify message text matches expected</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Test Case 2: Cancel Handling -->
+                <div class="test-case" id="test-ac2">
+                    <div class="test-status">
+                        <span class="badge bg-secondary">AC #2</span>
+                        Test 2: Cancel Preserves Custom Templates
+                    </div>
+                    <p><strong>Objective:</strong> Verify that canceling the confirmation dialog makes no changes.</p>
+
+                    <div class="test-actions">
+                        <button class="btn btn-primary" onclick="runTest2()">
+                            <i class="bi bi-play-fill"></i> Run Test 2
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="markTest('test-ac2', 'pass')">Pass</button>
+                        <button class="btn btn-danger btn-sm" onclick="markTest('test-ac2', 'fail')">Fail</button>
+                    </div>
+
+                    <div class="expected">
+                        <strong>Expected Result:</strong>
+                        <ul class="mb-0">
+                            <li>Custom template values remain unchanged</li>
+                            <li>localStorage still contains custom values</li>
+                            <li>No success alert appears</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-2">
+                        <strong>Manual Steps:</strong>
+                        <ol>
+                            <li>Click "Run Test 2" - this sets custom templates</li>
+                            <li>Note the custom template values displayed below</li>
+                            <li>Click reset button in settings</li>
+                            <li>Click "Cancel" in the confirmation dialog</li>
+                            <li>Verify template values are still custom (not defaults)</li>
+                        </ol>
+                    </div>
+
+                    <div id="test2-values" class="mt-2" style="display: none;">
+                        <strong>Custom Values Set:</strong>
+                        <ul id="test2-custom-values"></ul>
+                    </div>
+                </div>
+
+                <!-- Test Case 3: Template Reset -->
+                <div class="test-case" id="test-ac3">
+                    <div class="test-status">
+                        <span class="badge bg-secondary">AC #3</span>
+                        Test 3: All Templates Reset to Defaults
+                    </div>
+                    <p><strong>Objective:</strong> Verify that confirming reset restores all templates to default values.</p>
+
+                    <div class="test-actions">
+                        <button class="btn btn-primary" onclick="runTest3()">
+                            <i class="bi bi-play-fill"></i> Run Test 3
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="markTest('test-ac3', 'pass')">Pass</button>
+                        <button class="btn btn-danger btn-sm" onclick="markTest('test-ac3', 'fail')">Fail</button>
+                    </div>
+
+                    <div class="expected">
+                        <strong>Expected Default Values:</strong>
+                        <ul class="mb-0">
+                            <li><code>Custom Filename Template:</code> <code>{TYPE}_{PLACE}_{DATE}_{NAME}_{INFO}.{EXT}</code></li>
+                            <li><code>DATE sub-template:</code> <code>{YYYY}.{MM}.{DD}</code></li>
+                            <li><code>PLACE sub-template:</code> <code>{COUNTRY}.{STATE}.{COUNTY}.{CITY}</code></li>
+                            <li><code>NAME sub-template:</code> <code>{SURNAME:upper}.{GIVEN}</code></li>
+                            <li><code>Additional People Format:</code> <code>{GIVEN}.{SURNAME}|+</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-2">
+                        <strong>Manual Steps:</strong>
+                        <ol>
+                            <li>Click "Run Test 3" - this sets custom templates</li>
+                            <li>Open Settings panel in the main app</li>
+                            <li>Click "Reset to Default" button</li>
+                            <li>Click "OK" in the confirmation dialog</li>
+                            <li>Verify all template input fields show default values</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Test Case 4: localStorage Persistence -->
+                <div class="test-case" id="test-ac4">
+                    <div class="test-status">
+                        <span class="badge bg-secondary">AC #4</span>
+                        Test 4: Defaults Saved to localStorage
+                    </div>
+                    <p><strong>Objective:</strong> Verify that default templates are persisted to localStorage.</p>
+
+                    <div class="test-actions">
+                        <button class="btn btn-primary" onclick="runTest4()">
+                            <i class="bi bi-play-fill"></i> Run Test 4
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="markTest('test-ac4', 'pass')">Pass</button>
+                        <button class="btn btn-danger btn-sm" onclick="markTest('test-ac4', 'fail')">Fail</button>
+                    </div>
+
+                    <div class="expected">
+                        <strong>Expected Result:</strong>
+                        <ul class="mb-0">
+                            <li>localStorage key <code>genealogy_templates</code> contains default values</li>
+                            <li>Reloading the page preserves default templates</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-2">
+                        <strong>Manual Steps:</strong>
+                        <ol>
+                            <li>After running Test 3 (reset confirmed), click "Run Test 4"</li>
+                            <li>Observe the localStorage contents displayed below</li>
+                            <li>Reload the main application page</li>
+                            <li>Open Settings and verify defaults are still loaded</li>
+                        </ol>
+                    </div>
+
+                    <div id="test4-storage" class="mt-2" style="display: none;">
+                        <strong>localStorage Contents:</strong>
+                        <pre id="test4-storage-content" style="background: #f8f9fa; padding: 10px; border-radius: 4px;"></pre>
+                    </div>
+                </div>
+
+                <!-- Test Case 5: Success Alert -->
+                <div class="test-case" id="test-ac5">
+                    <div class="test-status">
+                        <span class="badge bg-secondary">AC #5</span>
+                        Test 5: Success Alert with Auto-Dismiss
+                    </div>
+                    <p><strong>Objective:</strong> Verify that success alert appears and auto-dismisses after 3 seconds.</p>
+
+                    <div class="test-actions">
+                        <button class="btn btn-primary" onclick="runTest5()">
+                            <i class="bi bi-play-fill"></i> Run Test 5
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="markTest('test-ac5', 'pass')">Pass</button>
+                        <button class="btn btn-danger btn-sm" onclick="markTest('test-ac5', 'fail')">Fail</button>
+                    </div>
+
+                    <div class="expected">
+                        <strong>Expected Result:</strong>
+                        <ul class="mb-0">
+                            <li>Bootstrap success alert appears at top of settings</li>
+                            <li>Message: "Templates reset to defaults"</li>
+                            <li>Alert has <code>role="alert"</code> attribute</li>
+                            <li>Alert auto-dismisses after approximately 3 seconds</li>
+                            <li>Fade-out animation is smooth</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-2">
+                        <strong>Manual Steps:</strong>
+                        <ol>
+                            <li>Customize templates, then click reset and confirm</li>
+                            <li>Observe success alert appears immediately</li>
+                            <li>Start a timer (or count "one thousand one, one thousand two...")</li>
+                            <li>Verify alert fades out at approximately 3 seconds</li>
+                            <li>Verify alert is removed from DOM after fade completes</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Test Case 6: Filename Preview Update -->
+                <div class="test-case" id="test-ac6">
+                    <div class="test-status">
+                        <span class="badge bg-secondary">AC #6</span>
+                        Test 6: Filename Preview Updates Immediately
+                    </div>
+                    <p><strong>Objective:</strong> Verify that filename preview updates immediately after reset.</p>
+
+                    <div class="test-actions">
+                        <button class="btn btn-primary" onclick="runTest6()">
+                            <i class="bi bi-play-fill"></i> Run Test 6
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="markTest('test-ac6', 'pass')">Pass</button>
+                        <button class="btn btn-danger btn-sm" onclick="markTest('test-ac6', 'fail')">Fail</button>
+                    </div>
+
+                    <div class="expected">
+                        <strong>Expected Result:</strong>
+                        <ul class="mb-0">
+                            <li>Filename output updates immediately (no delay)</li>
+                            <li>Filename reflects default template format</li>
+                            <li>Update perceived as instantaneous (&lt;100ms)</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-2">
+                        <strong>Manual Steps:</strong>
+                        <ol>
+                            <li>Fill in form fields (event, date, place, person)</li>
+                            <li>Customize templates to create a unique filename format</li>
+                            <li>Note the generated filename</li>
+                            <li>Click reset and confirm</li>
+                            <li>Verify filename immediately updates to use default format</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Test Case 7: Keyboard Accessibility -->
+                <div class="test-case" id="test-ac7">
+                    <div class="test-status">
+                        <span class="badge bg-warning">Accessibility</span>
+                        Test 7: Keyboard Navigation
+                    </div>
+                    <p><strong>Objective:</strong> Verify reset button is fully keyboard accessible.</p>
+
+                    <div class="test-actions">
+                        <button class="btn btn-success btn-sm" onclick="markTest('test-ac7', 'pass')">Pass</button>
+                        <button class="btn btn-danger btn-sm" onclick="markTest('test-ac7', 'fail')">Fail</button>
+                    </div>
+
+                    <div class="expected">
+                        <strong>Expected Result:</strong>
+                        <ul class="mb-0">
+                            <li>Can Tab to reset button</li>
+                            <li>Button has visible focus ring</li>
+                            <li>Enter key activates button</li>
+                            <li>Space key activates button</li>
+                            <li>Confirmation dialog is keyboard accessible</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-2">
+                        <strong>Manual Steps:</strong>
+                        <ol>
+                            <li>Open Settings panel</li>
+                            <li>Press Tab repeatedly until reset button receives focus</li>
+                            <li>Verify visible focus indicator appears</li>
+                            <li>Press Enter - verify confirmation dialog appears</li>
+                            <li>Press Escape or Tab to Cancel</li>
+                            <li>Tab back to reset button, press Space - verify dialog appears</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Test Case 8: Error Handling -->
+                <div class="test-case" id="test-ac8">
+                    <div class="test-status">
+                        <span class="badge bg-warning">Edge Case</span>
+                        Test 8: Error Handling (localStorage Failure)
+                    </div>
+                    <p><strong>Objective:</strong> Verify graceful handling when localStorage save fails.</p>
+
+                    <div class="test-actions">
+                        <button class="btn btn-primary" onclick="runTest8()">
+                            <i class="bi bi-play-fill"></i> Run Test 8 (Simulate Error)
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="markTest('test-ac8', 'pass')">Pass</button>
+                        <button class="btn btn-danger btn-sm" onclick="markTest('test-ac8', 'fail')">Fail</button>
+                    </div>
+
+                    <div class="expected">
+                        <strong>Expected Result:</strong>
+                        <ul class="mb-0">
+                            <li>Error alert appears (not success alert)</li>
+                            <li>Message describes the error</li>
+                            <li>Template inputs are still updated (in-memory)</li>
+                            <li>Error does not break the application</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-warning mt-2">
+                        <strong>Note:</strong> This test simulates a localStorage error by temporarily disabling storage.
+                        Refresh the page after this test to restore normal functionality.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Results Summary -->
+            <div class="col-md-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clipboard-check"></i>
+                            Test Results Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="test-summary">
+                            <p class="text-muted">Run tests and mark results to see summary.</p>
+                        </div>
+
+                        <hr>
+
+                        <h6>Quick Links:</h6>
+                        <div class="d-grid gap-2">
+                            <a href="genealogy-filename-generator.html" class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                Open Main Application
+                            </a>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="openDevTools()">
+                                <i class="bi bi-code-slash"></i>
+                                Open DevTools Console
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="inspectLocalStorage()">
+                                <i class="bi bi-database"></i>
+                                Inspect localStorage
+                            </button>
+                        </div>
+
+                        <hr>
+
+                        <h6>Test Progress:</h6>
+                        <div class="progress" style="height: 30px;">
+                            <div id="progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%">
+                                0/8
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let testResults = {
+            'test-ac1': null,
+            'test-ac2': null,
+            'test-ac3': null,
+            'test-ac4': null,
+            'test-ac5': null,
+            'test-ac6': null,
+            'test-ac7': null,
+            'test-ac8': null
+        };
+
+        function markTest(testId, result) {
+            testResults[testId] = result;
+            const testEl = document.getElementById(testId);
+            testEl.classList.remove('pass', 'fail');
+            testEl.classList.add(result);
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const total = Object.keys(testResults).length;
+            const completed = Object.values(testResults).filter(r => r !== null).length;
+            const passed = Object.values(testResults).filter(r => r === 'pass').length;
+            const failed = Object.values(testResults).filter(r => r === 'fail').length;
+
+            const summaryDiv = document.getElementById('test-summary');
+            summaryDiv.innerHTML = `
+                <div class="mb-3">
+                    <h6>Tests Completed: ${completed}/${total}</h6>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-success"><i class="bi bi-check-circle-fill"></i> Passed: ${passed}</span>
+                        <span class="text-danger"><i class="bi bi-x-circle-fill"></i> Failed: ${failed}</span>
+                    </div>
+                </div>
+            `;
+
+            const progressBar = document.getElementById('progress-bar');
+            const percentage = (completed / total) * 100;
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = `${completed}/${total}`;
+        }
+
+        // Test 1: Show confirmation dialog
+        function runTest1() {
+            alert('Test 1: After clicking OK on this message, the main app\'s reset button will be triggered.\n\nObserve the confirmation dialog that appears.\n\nClick CANCEL to avoid resetting.');
+            // In real test, user would manually click the reset button in the main app
+            window.open('genealogy-filename-generator.html', '_blank');
+        }
+
+        // Test 2: Cancel preserves custom templates
+        function runTest2() {
+            // Set custom templates in localStorage
+            const customConfig = {
+                version: "2.0.0",
+                customFilenameTemplate: "{DATE}_{NAME}_custom",
+                dateSubTemplate: "{DD}-{MM}-{YYYY}",
+                placeSubTemplate: "{CITY}, {STATE}",
+                nameSubTemplate: "{GIVEN} {SURNAME}",
+                additionalPeopleFormat: "{SURNAME}, {GIVEN}",
+                lastUpdated: Date.now(),
+                migrated: false
+            };
+
+            localStorage.setItem('genealogy_templates', JSON.stringify(customConfig));
+
+            document.getElementById('test2-values').style.display = 'block';
+            document.getElementById('test2-custom-values').innerHTML = `
+                <li>Custom Filename: <code>${customConfig.customFilenameTemplate}</code></li>
+                <li>DATE: <code>${customConfig.dateSubTemplate}</code></li>
+                <li>PLACE: <code>${customConfig.placeSubTemplate}</code></li>
+                <li>NAME: <code>${customConfig.nameSubTemplate}</code></li>
+                <li>Additional People: <code>${customConfig.additionalPeopleFormat}</code></li>
+            `;
+
+            alert('Custom templates have been set in localStorage.\n\nNow:\n1. Open the main application\n2. Open Settings\n3. Click "Reset to Default"\n4. Click CANCEL\n5. Verify templates still show custom values (not defaults)');
+            window.open('genealogy-filename-generator.html', '_blank');
+        }
+
+        // Test 3: All templates reset to defaults
+        function runTest3() {
+            // Set custom templates first
+            const customConfig = {
+                version: "2.0.0",
+                customFilenameTemplate: "{DATE}_{NAME}_custom",
+                dateSubTemplate: "{DD}-{MM}-{YYYY}",
+                placeSubTemplate: "{CITY}, {STATE}",
+                nameSubTemplate: "{GIVEN} {SURNAME}",
+                additionalPeopleFormat: "{SURNAME}, {GIVEN}",
+                lastUpdated: Date.now(),
+                migrated: false
+            };
+
+            localStorage.setItem('genealogy_templates', JSON.stringify(customConfig));
+
+            alert('Custom templates have been set.\n\nNow:\n1. Open the main application\n2. Open Settings\n3. Click "Reset to Default"\n4. Click OK to CONFIRM\n5. Verify all template inputs show default values');
+            window.open('genealogy-filename-generator.html', '_blank');
+        }
+
+        // Test 4: localStorage persistence
+        function runTest4() {
+            const stored = localStorage.getItem('genealogy_templates');
+            document.getElementById('test4-storage').style.display = 'block';
+
+            if (stored) {
+                const config = JSON.parse(stored);
+                document.getElementById('test4-storage-content').textContent = JSON.stringify(config, null, 2);
+            } else {
+                document.getElementById('test4-storage-content').textContent = 'No templates found in localStorage';
+            }
+
+            alert('localStorage contents displayed below.\n\nVerify:\n1. All template values are defaults\n2. Reload main app and check Settings\n3. Defaults should persist after reload');
+        }
+
+        // Test 5: Success alert with auto-dismiss
+        function runTest5() {
+            alert('Test 5: Success Alert\n\nAfter clicking OK:\n1. Set custom templates (if needed)\n2. Click reset and confirm\n3. Observe success alert appears\n4. Time how long before alert dismisses (should be ~3 seconds)\n5. Verify smooth fade-out animation');
+            window.open('genealogy-filename-generator.html', '_blank');
+        }
+
+        // Test 6: Filename preview updates
+        function runTest6() {
+            alert('Test 6: Filename Preview Update\n\nAfter clicking OK:\n1. Fill in form fields (event, date, place, person)\n2. Customize templates in Settings\n3. Note the generated filename\n4. Click reset and confirm\n5. Verify filename updates IMMEDIATELY to default format');
+            window.open('genealogy-filename-generator.html', '_blank');
+        }
+
+        // Test 8: Simulate localStorage error
+        function runTest8() {
+            alert('This test requires manual simulation:\n\n1. Open Browser DevTools (F12)\n2. Go to Application/Storage tab\n3. Clear all localStorage data\n4. Disable storage in DevTools (if available)\n5. Try to reset templates\n6. Verify error alert appears\n\nOR: Open main app in Private/Incognito mode with storage disabled');
+            window.open('genealogy-filename-generator.html', '_blank');
+        }
+
+        function openDevTools() {
+            alert('Press F12 or Ctrl+Shift+I (Cmd+Option+I on Mac) to open DevTools.\n\nUseful for:\n- Viewing console logs\n- Inspecting localStorage\n- Debugging errors');
+        }
+
+        function inspectLocalStorage() {
+            const templates = localStorage.getItem('genealogy_templates');
+            if (templates) {
+                const config = JSON.parse(templates);
+                alert('Current localStorage contents:\n\n' + JSON.stringify(config, null, 2));
+            } else {
+                alert('No templates found in localStorage');
+            }
+        }
+    </script>
+</body>
+</html>

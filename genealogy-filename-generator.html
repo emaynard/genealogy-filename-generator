@@ -5256,32 +5256,138 @@
             }, 500); // 500ms debounce delay
         }
 
-        // Reset template to default
+        // ============================================================
+        // RESET FUNCTIONALITY (Story 1.12: Reset Templates to Defaults)
+        // ============================================================
+
+        /**
+         * Reset all template configurations to defaults
+         * AC #1: Show confirmation dialog before resetting
+         * AC #2: Handle cancel (no changes if user cancels)
+         * AC #3: Reset all template inputs to default values
+         * AC #4: Save defaults to localStorage
+         * AC #5: Show success message with auto-dismiss
+         * AC #6: Update filename preview immediately
+         */
         function resetTemplate() {
             try {
-                // Clear template input
-                elements.filenameTemplate.value = '';
+                // AC #1: Show confirmation dialog
+                const message = "Reset all templates to defaults? Your custom templates will be lost.";
+                const confirmed = window.confirm(message);
 
-                // Story 4: Reset nameFormat to default
-                elements.nameFormatInput.value = '{GIVEN}.{SURNAME}|+';
+                // AC #2: Handle cancel - no changes if user cancels
+                if (!confirmed) {
+                    return;
+                }
 
-                // Update userSettings
-                userSettings.filenameTemplate = '';
-                userSettings.nameFormat = '{GIVEN}.{SURNAME}|+';
-                userSettings.useCustomTemplate = false;
-                userSettings.lastUpdated = new Date().toISOString();
+                // AC #3: Reset all template inputs to defaults
+                elements.filenameTemplate.value = DEFAULT_TEMPLATE_CONFIG.customFilenameTemplate;
+                elements.dateSubtemplateInput.value = DEFAULT_TEMPLATE_CONFIG.dateSubTemplate;
+                elements.placeSubtemplateInput.value = DEFAULT_TEMPLATE_CONFIG.placeSubTemplate;
+                elements.nameSubtemplateInput.value = DEFAULT_TEMPLATE_CONFIG.nameSubTemplate;
+                elements.nameFormatInput.value = DEFAULT_TEMPLATE_CONFIG.additionalPeopleFormat;
 
-                // Save to localStorage
-                localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(userSettings));
+                // AC #4: Save defaults to localStorage (atomic save)
+                const saveResult = saveTemplateConfig();
+                if (!saveResult.success) {
+                    console.error('Failed to save reset templates:', saveResult.error);
+                    showResetErrorAlert(saveResult.error);
+                    return;
+                }
 
-                // Update preview
-                updateTemplatePreview();
+                // AC #6: Update filename preview immediately
+                generateFilename();
 
-                // Show confirmation via save indicator
-                showSaveIndicator();
+                // AC #5: Show success confirmation with auto-dismiss
+                showResetSuccessAlert();
+
             } catch (error) {
-                console.warn('Failed to reset template:', error.message);
+                console.error('Failed to reset templates:', error);
+                showResetErrorAlert(error.message);
             }
+        }
+
+        /**
+         * Show success alert after reset (auto-dismiss after 3 seconds)
+         * AC #5: Bootstrap alert with role="alert", auto-dismiss timing
+         */
+        function showResetSuccessAlert() {
+            const alert = createAlert('Templates reset to defaults', 'success');
+            displayAlert(alert);
+            autoDismissAlert(alert, 3000);  // 3 seconds as per AC #5
+        }
+
+        /**
+         * Show error alert if reset fails
+         */
+        function showResetErrorAlert(errorMessage) {
+            const message = `Failed to reset templates: ${errorMessage}`;
+            const alert = createAlert(message, 'danger');
+            displayAlert(alert);
+            // Error alerts don't auto-dismiss (user needs to see and address)
+        }
+
+        /**
+         * Create a Bootstrap alert element
+         * @param {string} message - Alert message text
+         * @param {string} type - Bootstrap alert type (success, danger, warning, info)
+         * @returns {HTMLElement} Alert element
+         */
+        function createAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.setAttribute('role', 'alert');
+            alert.textContent = message;
+
+            // Add close button
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close';
+            closeBtn.setAttribute('data-bs-dismiss', 'alert');
+            closeBtn.setAttribute('aria-label', 'Close');
+            alert.appendChild(closeBtn);
+
+            return alert;
+        }
+
+        /**
+         * Display alert in the settings section
+         * @param {HTMLElement} alert - Alert element to display
+         */
+        function displayAlert(alert) {
+            // Find or create alert container
+            let container = document.getElementById('alert-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'alert-container';
+                container.className = 'mb-3';
+
+                // Insert at top of settings card content
+                const settingsCard = elements.settingsCard;
+                if (settingsCard) {
+                    const cardBody = settingsCard.querySelector('.card-body');
+                    if (cardBody) {
+                        cardBody.insertBefore(container, cardBody.firstChild);
+                    }
+                }
+            }
+            container.appendChild(alert);
+        }
+
+        /**
+         * Auto-dismiss alert after specified delay
+         * @param {HTMLElement} alert - Alert element to dismiss
+         * @param {number} delay - Delay in milliseconds before dismissing
+         */
+        function autoDismissAlert(alert, delay) {
+            setTimeout(() => {
+                // Trigger Bootstrap fade-out
+                alert.classList.remove('show');
+                // Remove from DOM after fade animation completes
+                setTimeout(() => {
+                    alert.remove();
+                }, 150);  // Bootstrap fade transition duration
+            }, delay);
         }
 
         // Show save indicator with visual feedback
