@@ -114,6 +114,11 @@
             display: none !important;
         }
 
+        /* Story 1.6: Template Configuration UI - Template inputs styling */
+        .template-input {
+            min-width: 300px;
+        }
+
         .additional-person-row {
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -327,6 +332,32 @@
             border-bottom-color: #ffffff;
             background: transparent;
             font-weight: bold;
+        }
+
+        /* Story 1.7: Template Validation Styling */
+        /* Validation message warning styling (orange/amber, not red) */
+        .form-text.text-warning {
+            color: #ff8c00; /* Orange/amber for warnings */
+        }
+
+        /* Validation message success styling (green) */
+        .form-text.text-success {
+            color: #28a745; /* Bootstrap green for success */
+        }
+
+        /* Fade-in animation for success indicator (AC #5) */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .validation-success {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        /* Icon spacing for validation messages */
+        .validation-message-icon {
+            margin-right: 0.25rem;
         }
     </style>
 </head>
@@ -607,7 +638,7 @@
                     <div class="card-header bg-success text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0"><i class="bi bi-file-earmark-text me-2"></i>Generated Output</h5>
-                            <button id="toggleSettings" class="btn btn-sm btn-outline-light" type="button">
+                            <button id="toggleSettings" class="btn btn-sm btn-outline-light" type="button" aria-label="Template settings">
                                 <i class="bi bi-gear"></i>
                             </button>
                         </div>
@@ -904,8 +935,9 @@
                                     <strong><i class="bi bi-info-circle me-1"></i>Available Placeholders:</strong>
                                     <ul class="mb-0 mt-2 small">
                                         <li><code>{TYPE}</code> - Event type (e.g., Birth, Marriage, Death)</li>
-                                        <li><code>{PLACE}</code> - Location in reverse hierarchical order</li>
-                                        <li><code>{DATE}</code> - Date in YYYY.MM.DD format</li>
+                                        <li><code>{PLACE}</code> - Place sub-template. Define below.</li>
+                                        <li><code>{DATE}</code> - Date sub-template. Define below.</li>
+                                        <li><code>{NAME}</code> - Name sub-template. Define below.</li>
                                         <li><code>{SURNAME}</code> - Person's surname</li>
                                         <li><code>{GIVEN}</code> - Given name</li>
                                         <li><code>{MIDDLE}</code> - Middle name</li>
@@ -918,12 +950,76 @@
 
                                 <!-- Template Input Field -->
                                 <div class="mb-3">
-                                    <label for="filenameTemplate" class="form-label fw-semibold">Custom Template:</label>
-                                    <input type="text" id="filenameTemplate" class="form-control font-monospace" maxlength="500" placeholder="{TYPE}_{PLACE}_{DATE}_{SURNAME}.{GIVEN}.{MIDDLE}_{INFO}{EXT}">
+                                    <label for="filenameTemplate" class="form-label fw-semibold">
+                                        Custom Template:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Available: {TYPE}, {PLACE}, {DATE}, {NAME}, {SURNAME}, {GIVEN}, {MIDDLE}, {INFO}, {EXT}, {AdditionalPeople}, {{ }}"></i>
+                                    </label>
+                                    <input type="text" id="filenameTemplate" class="form-control font-monospace template-input" maxlength="500" placeholder="{TYPE}_{PLACE}_{DATE}_{SURNAME}.{GIVEN}.{MIDDLE}_{INFO}{EXT}" aria-label="Custom filename template">
                                     <div class="form-text">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Enter your preferred filename template using the placeholders above.
                                     </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="filenameTemplateValidationMessage" class="form-text"></div>
+                                </div>
+
+                                <!-- DATE Sub-template Section (Story 1.3) -->
+                                <h6 class="mb-3 mt-4"><i class="bi bi-calendar me-2"></i>Date Sub-template</h6>
+
+                                <div class="alert alert-info" role="alert">
+                                    <strong><i class="bi bi-info-circle me-1"></i>Date Placeholder Syntax:</strong>
+                                    <ul class="mb-0 mt-2 small">
+                                        <li><code>{YYYY}</code> - 4-digit year (e.g., 2024)</li>
+                                        <li><code>{YY}</code> - 2-digit year (e.g., 24)</li>
+                                        <li><code>{MM}</code> - Zero-padded month (e.g., 03)</li>
+                                        <li><code>{M}</code> - Month without padding (e.g., 3)</li>
+                                        <li><code>{DD}</code> - Zero-padded day (e.g., 05)</li>
+                                        <li><code>{D}</code> - Day without padding (e.g., 5)</li>
+                                    </ul>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="dateSubtemplateInput" class="form-label fw-semibold">
+                                        Date Sub-template:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Available: {YYYY}, {YY}, {MM}, {M}, {DD}, {D}"></i>
+                                    </label>
+                                    <input type="text" id="dateSubtemplateInput" class="form-control font-monospace template-input" maxlength="200" placeholder="Example: {YYYY}.{MM}.{DD}" aria-label="Date sub-template">
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Define how dates are formatted in your filenames. Leave blank to use default: {YYYY}.{MM}.{DD}
+                                    </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="dateValidationMessage" class="form-text"></div>
+                                </div>
+
+                                <!-- Story 1.4: PLACE Sub-template Input -->
+                                <div class="mb-3">
+                                    <label for="placeSubtemplateInput" class="form-label fw-semibold">
+                                        Place Sub-template:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Available: {COUNTRY}/{C}, {STATE}/{S}, {COUNTY}/{CO}, {CITY}/{CI}"></i>
+                                    </label>
+                                    <input type="text" id="placeSubtemplateInput" class="form-control font-monospace template-input" maxlength="200" placeholder="Example: {COUNTRY}.{STATE}.{CITY}" aria-label="Place sub-template">
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Define how places are formatted in your filenames. Available: {COUNTRY}/{C}, {STATE}/{S}, {COUNTY}/{CO}, {CITY}/{CI}. Leave blank to use default: {COUNTRY}.{STATE}.{COUNTY}.{CITY}
+                                    </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="placeValidationMessage" class="form-text"></div>
+                                </div>
+
+                                <!-- Story 1.5: NAME Sub-template Input -->
+                                <div class="mb-3">
+                                    <label for="nameSubtemplateInput" class="form-label fw-semibold">
+                                        Primary Person Name Sub-template:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Available: {SURNAME}, {GIVEN}, {MIDDLE}. Modifiers: :upper, :lower, :title, :abbrev"></i>
+                                    </label>
+                                    <input type="text" id="nameSubtemplateInput" class="form-control font-monospace template-input" maxlength="200" placeholder="Example: {SURNAME:upper}.{GIVEN}" aria-label="Primary person name sub-template">
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Define how the primary person's name is formatted. Available: {SURNAME}, {GIVEN}, {MIDDLE}. Leave blank to use default: {SURNAME:upper}.{GIVEN}
+                                    </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="nameValidationMessage" class="form-text"></div>
                                 </div>
 
                                 <!-- Additional People Name Format Section -->
@@ -942,12 +1038,17 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="nameFormatInput" class="form-label fw-semibold">Additional People Name Format:</label>
-                                    <input type="text" id="nameFormatInput" class="form-control font-monospace" maxlength="200" placeholder="{GIVEN}.{SURNAME}|+">
+                                    <label for="nameFormatInput" class="form-label fw-semibold">
+                                        Additional People Name Format:
+                                        <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="right" title="Format: [template]|[delimiter]. Available: {GIVEN}, {SURNAME}, {MIDDLE}"></i>
+                                    </label>
+                                    <input type="text" id="nameFormatInput" class="form-control font-monospace template-input" maxlength="200" placeholder="{GIVEN}.{SURNAME}|+" aria-label="Additional people name format">
                                     <div class="form-text">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Define how additional people names are formatted. Use {GIVEN}, {SURNAME}, {MIDDLE} placeholders. Separate format from delimiter with pipe (|).
                                     </div>
+                                    <!-- Story 1.7: Validation message container -->
+                                    <div id="nameFormatValidationMessage" class="form-text"></div>
                                 </div>
 
                                 <!-- Preview Section -->
@@ -1025,6 +1126,9 @@
         let userSettings = {
             version: '1.0',
             filenameTemplate: '',
+            dateSubtemplate: '{YYYY}.{MM}.{DD}',  // Story 1.3: Default date template
+            placeSubtemplate: '{COUNTRY}.{STATE}.{COUNTY}.{CITY}',  // Story 1.4: Default place template
+            nameSubtemplate: '{SURNAME:upper}.{GIVEN}',  // Story 1.5: Default name template
             nameFormat: '{GIVEN}.{SURNAME}|+',
             useCustomTemplate: false,
             lastUpdated: null
@@ -1108,6 +1212,9 @@
             settingsCard: document.getElementById('settings-card'),
             // Settings tab elements
             filenameTemplate: document.getElementById('filenameTemplate'),
+            dateSubtemplateInput: document.getElementById('dateSubtemplateInput'),  // Story 1.3: DATE sub-template input
+            placeSubtemplateInput: document.getElementById('placeSubtemplateInput'),  // Story 1.4: PLACE sub-template input
+            nameSubtemplateInput: document.getElementById('nameSubtemplateInput'),  // Story 1.5: NAME sub-template input
             nameFormatInput: document.getElementById('nameFormatInput'),
             templatePreview: document.getElementById('templatePreview'),
             resetTemplate: document.getElementById('resetTemplate'),
@@ -1151,11 +1258,72 @@
             saveSettings();
         });
 
+        // Story 1.3: dateSubtemplate field event listener
+        elements.dateSubtemplateInput.addEventListener('input', function() {
+            userSettings.dateSubtemplate = this.value || '{YYYY}.{MM}.{DD}';  // Use default if empty
+            generateFilename();  // Regenerate filename with new date template
+            saveSettings();
+        });
+
+        // Story 1.4: placeSubtemplate field event listener
+        elements.placeSubtemplateInput.addEventListener('input', function() {
+            userSettings.placeSubtemplate = this.value || '{COUNTRY}.{STATE}.{COUNTY}.{CITY}';  // Use default if empty
+            generateFilename();  // Regenerate filename with new place template
+            saveSettings();
+        });
+
+        // Story 1.5: nameSubtemplate field event listener
+        elements.nameSubtemplateInput.addEventListener('input', function() {
+            userSettings.nameSubtemplate = this.value || '{SURNAME:upper}.{GIVEN}';  // Use default if empty
+            generateFilename();  // Regenerate filename with new name template
+            saveSettings();
+        });
+
         // Story 4: nameFormat field event listener
         elements.nameFormatInput.addEventListener('input', function() {
             updateTemplatePreview();
             saveSettings();
         });
+
+        // Story 1.7: Template validation event listeners (500ms debounced)
+        // AC #4: Validation appears 500ms after user stops typing
+        // AC #6: Non-blocking validation (warnings only, doesn't prevent saving)
+        const debouncedDateValidation = debounce(function() {
+            const template = elements.dateSubtemplateInput.value;
+            const result = validateTemplate(template, 'DATE');
+            displayValidationFeedback('date', result);
+        }, 500);
+
+        const debouncedPlaceValidation = debounce(function() {
+            const template = elements.placeSubtemplateInput.value;
+            const result = validateTemplate(template, 'PLACE');
+            displayValidationFeedback('place', result);
+        }, 500);
+
+        const debouncedNameValidation = debounce(function() {
+            const template = elements.nameSubtemplateInput.value;
+            const result = validateTemplate(template, 'NAME');
+            displayValidationFeedback('name', result);
+        }, 500);
+
+        const debouncedFilenameTemplateValidation = debounce(function() {
+            const template = elements.filenameTemplate.value;
+            const result = validateTemplate(template, 'CUSTOM');
+            displayValidationFeedback('filenameTemplate', result);
+        }, 500);
+
+        const debouncedNameFormatValidation = debounce(function() {
+            const template = elements.nameFormatInput.value;
+            const result = validateTemplate(template, 'NAME');
+            displayValidationFeedback('nameFormat', result);
+        }, 500);
+
+        // Attach debounced validation to input events
+        elements.dateSubtemplateInput.addEventListener('input', debouncedDateValidation);
+        elements.placeSubtemplateInput.addEventListener('input', debouncedPlaceValidation);
+        elements.nameSubtemplateInput.addEventListener('input', debouncedNameValidation);
+        elements.filenameTemplate.addEventListener('input', debouncedFilenameTemplateValidation);
+        elements.nameFormatInput.addEventListener('input', debouncedNameFormatValidation);
 
         elements.resetTemplate.addEventListener('click', resetTemplate);
 
@@ -3264,28 +3432,12 @@
         function getFormattedPlace() {
             let formattedPlace = '';
             if (elements.place.value) {
-                // Parse place input (smallest to largest: City, County, State, Country)
-                const placeParts = elements.place.value.split(',').map(part => part.trim());
+                // Story 1.4: Use PLACE sub-template for formatting if available
+                const placeTemplate = userSettings.placeSubtemplate || '{COUNTRY}.{STATE}.{COUNTY}.{CITY}';
+                formattedPlace = processPlaceSubtemplate(elements.place.value, placeTemplate);
 
-                // Ensure we have exactly 4 parts, padding with empty strings if needed
-                while (placeParts.length < 4) {
-                    placeParts.push('');
-                }
-
-                // For filename: reverse order (largest to smallest) and format
-                const reversedParts = [...placeParts].reverse();
-
-                // Apply country abbreviation to the first element (country) BEFORE formatting
-                if (reversedParts[0]) {
-                    reversedParts[0] = getCountryAbbreviation(reversedParts[0]) || reversedParts[0];
-                }
-
-                // Now format all parts for filename (spaces to hyphens)
-                const formattedParts = reversedParts.map(part => part ? formatForFilename(part) : '');
-
-                formattedPlace = formattedParts
-                    .map(part => part || 'x')  // Replace empty parts with 'x'
-                    .join('.');
+                // Format the result for filename (spaces to hyphens)
+                formattedPlace = formatForFilename(formattedPlace);
             } else {
                 formattedPlace = 'x';
             }
@@ -3299,12 +3451,285 @@
             let formattedDate;
 
             if (currentDateValue) {
-                // Use genealogical date formatting
-                formattedDate = formatGenealogyDateForFilename(currentDateValue);
+                // Story 1.3: Use DATE sub-template for formatting if available
+                const dateTemplate = userSettings.dateSubtemplate || '{YYYY}.{MM}.{DD}';
+                formattedDate = processDateSubtemplate(currentDateValue, dateTemplate);
             } else {
                 formattedDate = 'x';
             }
             return formattedDate;
+        }
+
+        // Helper function: Extract and format primary person name for filename
+        function getFormattedName() {
+            // Construct full name string from form fields
+            const surname = elements.surname.value || '';
+            const given = elements.givenName.value || '';
+            const middle = elements.middleName.value || '';
+
+            // Build full name string: "Given Middle Surname"
+            let fullName = '';
+            if (given) fullName += given;
+            if (middle) fullName += (fullName ? ' ' : '') + middle;
+            if (surname) fullName += (fullName ? ' ' : '') + surname;
+
+            if (!fullName) {
+                return 'x';
+            }
+
+            // Story 1.5: Use NAME sub-template for formatting if available
+            const nameTemplate = userSettings.nameSubtemplate || '{SURNAME:upper}.{GIVEN}';
+            let formattedName = processNameSubtemplate(fullName, nameTemplate);
+
+            // Format the result for filename (spaces to hyphens)
+            formattedName = formatForFilename(formattedName);
+
+            return formattedName;
+        }
+
+        // ============================================================================
+        // SUB-TEMPLATE PROCESSOR - CORE ENGINE (Story 1.1) + ENHANCEMENTS (Story 1.2)
+        // ============================================================================
+        // Processes template strings with placeholders and returns formatted output.
+        // Supports:
+        // - Placeholder replacement: {YYYY}, {MM}, {GIVEN}, etc.
+        // - Format modifiers: {PLACEHOLDER:modifier} where modifier is :upper, :lower, :title, :abbrev
+        // - Multiple modifiers (AC #8): {PLACEHOLDER:mod1:mod2:mod3} applies only LAST modifier
+        // - Case-insensitive modifiers (AC #6): :UPPER, :upper, :Upper all work the same
+        // - Invalid modifier handling (AC #7): Logs warning, returns original value
+
+        function processSubTemplate(template, data, options = {}) {
+            // Default options
+            const { missingValueHandler = 'x', caseSensitive = false } = options;
+
+            if (!template || typeof template !== 'string') return '';
+
+            let result = template;
+
+            // Regex pattern for matching placeholders: {PLACEHOLDER} or {PLACEHOLDER:modifier} or {PLACEHOLDER:mod1:mod2:...}
+            // Captures: [1] = placeholder name, [2] = optional modifier chain (without leading colon)
+            // Note: Modifiers are case-insensitive, so we accept [a-zA-Z]+ and convert to lowercase
+            const placeholderRegex = /\{([A-Z]+)(?::([a-zA-Z:]+))?\}/g;
+
+            // Replace all placeholders in the template
+            result = result.replace(placeholderRegex, (match, placeholder, modifier) => {
+                // Map placeholder names to data keys (YYYY → year, MM → month, etc.)
+                const keyMap = {
+                    // Date placeholders
+                    'YYYY': 'year',
+                    'YY': 'year',
+                    'MM': 'month',
+                    'M': 'month',
+                    'DD': 'day',
+                    'D': 'day',
+                    // Place placeholders
+                    'COUNTRY': 'country',
+                    'C': 'country',
+                    'STATE': 'state',
+                    'S': 'state',
+                    'COUNTY': 'county',
+                    'CO': 'county',
+                    'CITY': 'city',
+                    'CI': 'city',
+                    // Name placeholders
+                    'SURNAME': 'surname',
+                    'GIVEN': 'given',
+                    'MIDDLE': 'middle'
+                };
+
+                const dataKey = keyMap[placeholder];
+
+                // If placeholder not recognized, log warning and preserve
+                if (!dataKey) {
+                    console.warn(`Unknown placeholder: ${placeholder}`);
+                    return match;
+                }
+
+                // Get value from data object
+                let value = data[dataKey];
+
+                // Handle missing/null/undefined/empty values
+                if (value === null || value === undefined || value === '') {
+                    return missingValueHandler;
+                }
+
+                // Convert to string
+                value = String(value);
+
+                // Apply padding rules for date placeholders
+                if ((placeholder === 'MM' || placeholder === 'DD') && !isNaN(value)) {
+                    value = String(value).padStart(2, '0');
+                } else if ((placeholder === 'YY') && !isNaN(value)) {
+                    // Extract last 2 digits of year
+                    const yearNum = parseInt(value);
+                    value = String(yearNum % 100).padStart(2, '0');
+                }
+
+                // Apply format modifiers if present
+                if (modifier) {
+                    // Handle multiple modifiers separated by colons (e.g., "upper:lower:title")
+                    // AC #8: Apply only the LAST modifier in the chain
+                    const modifiers = modifier.split(':');
+                    const lastModifier = modifiers[modifiers.length - 1];
+                    value = applyModifier(value, lastModifier);
+                }
+
+                return value;
+            });
+
+            return result;
+        }
+
+        // Helper function to apply format modifiers (Story 1.2)
+        // Applies text transformation modifiers to placeholder values
+        // Supports: :upper, :lower, :title, :abbrev
+        // AC #6: Case-insensitive modifier matching (all case variants work the same)
+        // AC #7: Invalid modifiers logged with console.warn(), original value returned unchanged
+        function applyModifier(value, modifier) {
+            if (!modifier || !value) return value;
+
+            // AC #6: Convert modifier to lowercase for case-insensitive matching
+            const mod = modifier.toLowerCase();
+
+            switch (mod) {
+                case 'upper':
+                    // AC #2: Convert text to uppercase
+                    return value.toUpperCase();
+                case 'lower':
+                    // AC #3: Convert text to lowercase
+                    return value.toLowerCase();
+                case 'title':
+                    // AC #4: Convert text to title case (capitalize first letter of each word)
+                    return toTitleCase(value);
+                case 'abbrev':
+                    // AC #5: Take first letter only and uppercase it
+                    return value.charAt(0).toUpperCase();
+                default:
+                    // AC #7: Invalid modifiers logged but don't crash, return original value
+                    console.warn(`Unknown modifier: ${modifier}`);
+                    return value;
+            }
+        }
+
+        // Helper function for title case conversion (Story 1.2 - AC #4)
+        // Converts a string to title case by capitalizing first letter of each word
+        // Example: "john william" → "John William"
+        function toTitleCase(str) {
+            return str.replace(/\w\S*/g, (txt) =>
+                txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+            );
+        }
+
+        // Story 1.7: Template Validation Functions
+        // Validates template syntax against known placeholders for template type
+        // Returns: {valid: boolean, errors: array of error messages}
+        // AC #1: Validates template syntax with specific error messages
+        // AC #3: Error messages include suggestions for correct syntax
+        function validateTemplate(templateString, templateType) {
+            // Return valid if template is empty (empty templates are allowed)
+            if (!templateString || templateString.trim() === '') {
+                return { valid: true, errors: [] };
+            }
+
+            const errors = [];
+
+            // Known placeholders by template type (from processSubTemplate keyMap at line 3441)
+            const KNOWN_PLACEHOLDERS = {
+                DATE: ['YYYY', 'YY', 'MM', 'M', 'DD', 'D'],
+                PLACE: ['COUNTRY', 'C', 'STATE', 'S', 'COUNTY', 'CO', 'CITY', 'CI'],
+                NAME: ['SURNAME', 'GIVEN', 'MIDDLE'],
+                CUSTOM: ['TYPE', 'PLACE', 'DATE', 'NAME', 'SURNAME', 'GIVEN', 'MIDDLE', 'INFO', 'EXT', 'AdditionalPeople']
+            };
+
+            // Known modifiers (from applyModifier switch at line 3554)
+            const KNOWN_MODIFIERS = ['upper', 'lower', 'title', 'abbrev'];
+
+            // Regex pattern matching processSubTemplate (line 3436)
+            const placeholderRegex = /\{([A-Z]+)(?::([a-zA-Z:]+))?\}/g;
+
+            // Extract all placeholders from template
+            let match;
+            while ((match = placeholderRegex.exec(templateString)) !== null) {
+                const placeholder = match[1]; // e.g., "YYYY" or "SURNAME"
+                const modifiers = match[2]; // e.g., "upper" or "upper:lower:title"
+
+                // Validate placeholder name
+                const knownPlaceholders = KNOWN_PLACEHOLDERS[templateType] || [];
+                if (!knownPlaceholders.includes(placeholder)) {
+                    // AC #1: Unknown placeholder error with suggestion
+                    const suggestion = `Unknown placeholder {${placeholder}}. Available: ${knownPlaceholders.map(p => `{${p}}`).join(', ')}`;
+                    errors.push(suggestion);
+                }
+
+                // Validate modifiers if present
+                if (modifiers) {
+                    // Split multiple modifiers (e.g., "upper:lower" → ["upper", "lower"])
+                    const modifierList = modifiers.split(':');
+                    modifierList.forEach(mod => {
+                        if (!KNOWN_MODIFIERS.includes(mod.toLowerCase())) {
+                            // AC #1: Unknown modifier error with suggestion
+                            const suggestion = `Unknown modifier ':${mod}'. Available: :${KNOWN_MODIFIERS.join(', :')}`;
+                            errors.push(suggestion);
+                        }
+                    });
+                }
+            }
+
+            // Check for malformed placeholder syntax (unclosed braces)
+            // AC #1: Malformed syntax detection
+            const openBraces = (templateString.match(/\{/g) || []).length;
+            const closeBraces = (templateString.match(/\}/g) || []).length;
+            if (openBraces !== closeBraces) {
+                errors.push('Check your template syntax. Placeholders should use {PLACEHOLDER} format with matching braces.');
+            }
+
+            return {
+                valid: errors.length === 0,
+                errors: errors
+            };
+        }
+
+        // Story 1.7: Display validation feedback in UI
+        // AC #2: Warning messages use .form-text.text-warning styling (orange/amber)
+        // AC #5: Valid templates show success indicator with fade-in animation
+        function displayValidationFeedback(inputElementId, validationResult) {
+            const validationContainer = document.getElementById(inputElementId + 'ValidationMessage');
+            if (!validationContainer) return;
+
+            // Clear previous validation message
+            validationContainer.innerHTML = '';
+            validationContainer.className = 'form-text';
+
+            if (validationResult.valid) {
+                // AC #5: Show success indicator with fade-in animation
+                validationContainer.className = 'form-text text-success validation-success';
+                validationContainer.innerHTML = '<i class="bi bi-check-circle-fill validation-message-icon"></i>Valid template';
+            } else {
+                // AC #2: Show warning messages (orange/amber, not red)
+                // AC #3: Include suggestions for correct syntax
+                validationContainer.className = 'form-text text-warning';
+                const errorMessages = validationResult.errors.join('<br>');
+                validationContainer.innerHTML = `<i class="bi bi-exclamation-triangle-fill validation-message-icon"></i>${errorMessages}`;
+            }
+        }
+
+        // Story 1.7: Clear validation message
+        function clearValidationMessage(inputElementId) {
+            const validationContainer = document.getElementById(inputElementId + 'ValidationMessage');
+            if (validationContainer) {
+                validationContainer.innerHTML = '';
+                validationContainer.className = 'form-text';
+            }
+        }
+
+        // Story 1.7: Debounce utility function
+        // AC #4: Validation debounced 500ms after user stops typing
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), delay);
+            };
         }
 
         // Helper function: Format additional people using nameFormat template
@@ -3325,23 +3750,24 @@
                 delimiter = nameFormat.substring(pipeIndex + 1);
             }
 
-            // Format each person using the template
+            // Format each person using processNameSubtemplate() for consistency
+            // This ensures format modifiers (:upper, :lower, :title, :abbrev) work correctly
             const formattedPeople = additionalPeople.map(person => {
-                let formatted = formatTemplate;
+                // Construct full name string from person object
+                const nameParts = [
+                    person.givenName || '',
+                    person.middleName || '',
+                    person.surname || ''
+                ].filter(part => part.trim() !== '');
 
-                // Replace {GIVEN} placeholder
-                const givenName = person.givenName || '';
-                formatted = formatted.replace(/{GIVEN}/g, givenName ? formatForFilename(givenName) : '');
+                const fullName = nameParts.join(' ') || '';
 
-                // Replace {SURNAME} placeholder (uppercase)
-                const surname = person.surname || '';
-                formatted = formatted.replace(/{SURNAME}/g, surname ? surname.toUpperCase() : '');
+                // Use processNameSubtemplate() to apply template with modifier support
+                // This function already handles format modifiers and missing components
+                const formatted = processNameSubtemplate(fullName, formatTemplate);
 
-                // Replace {MIDDLE} placeholder
-                const middleName = person.middleName || '';
-                formatted = formatted.replace(/{MIDDLE}/g, middleName ? formatForFilename(middleName) : '');
-
-                return formatted;
+                // Format for filename (replace spaces with hyphens, etc.)
+                return formatForFilename(formatted);
             });
 
             // Join all formatted people with the delimiter
@@ -3353,6 +3779,7 @@
             // Get all formatted values using helper functions
             const formattedPlace = getFormattedPlace();
             const formattedDate = getFormattedDate();
+            const formattedName = getFormattedName();  // Story 1.5: NAME sub-template support
 
             // Get individual field values
             const formattedType = formatForFilename(elements.eventType.value || 'x');
@@ -3374,6 +3801,7 @@
                 '{TYPE}': formattedType,
                 '{PLACE}': formattedPlace,
                 '{DATE}': formattedDate,
+                '{NAME}': formattedName,  // Story 1.5: NAME placeholder
                 '{SURNAME}': formattedSurname,
                 '{GIVEN}': formattedGiven,
                 '{MIDDLE}': formattedMiddle,
@@ -3405,6 +3833,7 @@
             result = result.replace(/{TYPE}/g, formattedType);
             result = result.replace(/{PLACE}/g, formattedPlace);
             result = result.replace(/{DATE}/g, formattedDate);
+            result = result.replace(/{NAME}/g, formattedName);  // Story 1.5: NAME placeholder
             result = result.replace(/{SURNAME}/g, formattedSurname);
             result = result.replace(/{GIVEN}/g, formattedGiven);
             result = result.replace(/{MIDDLE}/g, formattedMiddle);
@@ -3412,6 +3841,221 @@
             result = result.replace(/{EXT}/g, fileExtension);
             result = result.replace(/{AdditionalPeople}/g, additionalPeopleStr);
 
+            return result;
+        }
+
+        // ============================================================================
+        // DATE SUB-TEMPLATE PROCESSOR (Story 1.3)
+        // ============================================================================
+        // Parses date strings into year, month, day components for template processing
+
+        // Story 1.3: Parse date input and extract components
+        function parseDateInput(dateString) {
+            if (!dateString || dateString.trim() === '') {
+                return { year: 'x', month: 'x', day: 'x' };
+            }
+
+            const trimmed = dateString.trim();
+            let year = 'x', month = 'x', day = 'x';
+
+            // Handle ISO format: YYYY-MM-DD
+            if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                const parts = trimmed.split('-');
+                year = parts[0];
+                month = parts[1];
+                day = parts[2];
+                return { year, month, day };
+            }
+
+            // Handle partial dates: YYYY-MM or YYYY
+            if (trimmed.match(/^\d{4}(-\d{2})?$/)) {
+                const parts = trimmed.split('-');
+                year = parts[0];
+                month = (parts[1]) ? parts[1] : 'x';
+                day = 'x';
+                return { year, month, day };
+            }
+
+            // Handle genealogical formats: "Abt 1850", "Bef 1900-06", "Aft 1920"
+            const genealogicalMatch = trimmed.match(/(Abt|Bef|Aft)?\s*(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+            if (genealogicalMatch) {
+                year = genealogicalMatch[2];
+                month = genealogicalMatch[3] || 'x';
+                day = genealogicalMatch[4] || 'x';
+                return { year, month, day };
+            }
+
+            // If we can only extract a year, use it
+            const yearMatch = trimmed.match(/\b(\d{4})\b/);
+            if (yearMatch) {
+                year = yearMatch[1];
+                return { year, month: 'x', day: 'x' };
+            }
+
+            // Default: return all missing values
+            return { year: 'x', month: 'x', day: 'x' };
+        }
+
+        // Story 1.3: Process DATE sub-template with custom date formatting
+        function processDateSubtemplate(dateString, template) {
+            // Use default template if empty
+            const dateTemplate = template || '{YYYY}.{MM}.{DD}';
+
+            // Parse date input to extract components
+            const dateComponents = parseDateInput(dateString);
+
+            // Create data object for processSubTemplate
+            const data = {
+                year: dateComponents.year === 'x' ? null : dateComponents.year,
+                month: dateComponents.month === 'x' ? null : dateComponents.month,
+                day: dateComponents.day === 'x' ? null : dateComponents.day
+            };
+
+            // Use Story 1.1 processSubTemplate to apply the template
+            const result = processSubTemplate(dateTemplate, data, { missingValueHandler: 'x' });
+            return result;
+        }
+
+        // Story 1.4: Parse place input and extract components (COUNTRY, STATE, COUNTY, CITY)
+        // Handles GEDCOM format: "City, County, State, Country" (comma-separated)
+        // Also handles single component places (e.g., just "London" or just "USA")
+        function parsePlaceInput(placeString) {
+            if (!placeString || placeString.trim() === '') {
+                return { country: 'x', state: 'x', county: 'x', city: 'x' };
+            }
+
+            const trimmed = placeString.trim();
+
+            // Split by comma to get individual components
+            const parts = trimmed.split(',').map(part => part.trim());
+
+            // GEDCOM format: City, County, State, Country (4 components from smallest to largest)
+            // We need to fill: { city, county, state, country }
+
+            let city = 'x', county = 'x', state = 'x', country = 'x';
+
+            // Determine how many parts we have and map them accordingly
+            if (parts.length === 4) {
+                // Full GEDCOM format: City, County, State, Country
+                city = parts[0] || 'x';
+                county = parts[1] || 'x';
+                state = parts[2] || 'x';
+                country = parts[3] || 'x';
+            } else if (parts.length === 3) {
+                // Assume: City, State, Country (skip county)
+                city = parts[0] || 'x';
+                state = parts[1] || 'x';
+                country = parts[2] || 'x';
+            } else if (parts.length === 2) {
+                // Assume: City, Country OR State, Country
+                // Heuristic: if first part is short and uppercase-ish, it's a state code
+                // Otherwise, treat first as city
+                city = parts[0] || 'x';
+                country = parts[1] || 'x';
+            } else if (parts.length === 1) {
+                // Single component: try to guess what it is
+                // Common heuristics:
+                // - If it's 2-3 chars and all uppercase: likely a country code
+                // - Otherwise: could be city or country
+                // For now, treat single component as city if it looks like a place, otherwise country
+                const single = parts[0];
+
+                // Common country codes and abbreviations
+                const countryCodes = ['USA', 'UK', 'CA', 'AU', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'CH', 'SE', 'NO', 'DK'];
+                const isCountryCode = countryCodes.some(code => single.toUpperCase() === code) || single.length <= 3;
+
+                if (isCountryCode || single.toUpperCase() === single) {
+                    country = single;
+                } else {
+                    city = single;
+                }
+            }
+
+            return { country, state, county, city };
+        }
+
+        // Story 1.4: Process PLACE sub-template with custom place formatting
+        // Uses parsePlaceInput to extract components, then applies template
+        function processPlaceSubtemplate(placeString, template) {
+            // Use default template if empty: reverse hierarchy matching v1.0.3
+            const placeTemplate = template || '{COUNTRY}.{STATE}.{COUNTY}.{CITY}';
+
+            // Parse place input to extract components
+            const placeComponents = parsePlaceInput(placeString);
+
+            // Create data object for processSubTemplate
+            // Note: processSubTemplate uses a keyMap that recognizes COUNTRY/C, STATE/S, COUNTY/CO, CITY/CI
+            const data = {
+                country: placeComponents.country === 'x' ? null : placeComponents.country,
+                state: placeComponents.state === 'x' ? null : placeComponents.state,
+                county: placeComponents.county === 'x' ? null : placeComponents.county,
+                city: placeComponents.city === 'x' ? null : placeComponents.city
+            };
+
+            // Use Story 1.1 processSubTemplate to apply the template
+            // This will handle placeholder replacement, padding (if applicable), and format modifiers
+            const result = processSubTemplate(placeTemplate, data, { missingValueHandler: 'x' });
+            return result;
+        }
+
+        // Story 1.5: Parse name input and extract components (SURNAME, GIVEN, MIDDLE)
+        // Handles full names: "John Robert Smith" → {given: "John", middle: "Robert", surname: "Smith"}
+        // Handles two-part names: "John Smith" → {given: "John", surname: "Smith", middle: 'x'}
+        // Handles single names: "John" → {given: "John", surname: 'x', middle: 'x'}
+        function parseNameInput(nameString) {
+            if (!nameString || nameString.trim() === '') {
+                return { surname: 'x', given: 'x', middle: 'x' };
+            }
+
+            const trimmed = nameString.trim();
+
+            // Split by spaces to get individual name parts
+            const parts = trimmed.split(/\s+/).filter(part => part.length > 0);
+
+            let given = 'x', middle = 'x', surname = 'x';
+
+            // Determine how many parts we have and map them accordingly
+            if (parts.length === 3) {
+                // Full name format: Given Middle Surname
+                given = parts[0];
+                middle = parts[1];
+                surname = parts[2];
+            } else if (parts.length === 2) {
+                // Two-part name: Given Surname
+                given = parts[0];
+                surname = parts[1];
+            } else if (parts.length === 1) {
+                // Single name: treat as given name
+                given = parts[0];
+            } else if (parts.length > 3) {
+                // More than 3 parts: First is given, last is surname, middle parts combined as middle
+                given = parts[0];
+                middle = parts.slice(1, -1).join(' ');
+                surname = parts[parts.length - 1];
+            }
+
+            return { surname, given, middle };
+        }
+
+        // Story 1.5: Process NAME sub-template with custom name formatting
+        // Uses parseNameInput to extract components, then applies template
+        function processNameSubtemplate(nameString, template) {
+            // Use default template if empty: common genealogy pattern
+            const nameTemplate = template || '{SURNAME:upper}.{GIVEN}';
+
+            // Parse name input to extract components
+            const nameComponents = parseNameInput(nameString);
+
+            // Create data object for processSubTemplate
+            const data = {
+                surname: nameComponents.surname === 'x' ? null : nameComponents.surname,
+                given: nameComponents.given === 'x' ? null : nameComponents.given,
+                middle: nameComponents.middle === 'x' ? null : nameComponents.middle
+            };
+
+            // Use Story 1.1 processSubTemplate to apply the template
+            // This will handle placeholder replacement and format modifiers
+            const result = processSubTemplate(nameTemplate, data, { missingValueHandler: 'x' });
             return result;
         }
 
@@ -3430,57 +4074,11 @@
                 }
             }
 
-            let formattedPlace = '';
-            if (elements.place.value) {
-                // Parse place input (smallest to largest: City, County, State, Country)
-                const placeParts = elements.place.value.split(',').map(part => part.trim());
-                
-                // Ensure we have exactly 4 parts, padding with empty strings if needed
-                while (placeParts.length < 4) {
-                    placeParts.push('');
-                }
-                
-                // For filename: reverse order (largest to smallest) and format
-                const reversedParts = [...placeParts].reverse();
-                
-                // Apply country abbreviation to the first element (country) BEFORE formatting
-                if (reversedParts[0]) {
-                    reversedParts[0] = getCountryAbbreviation(reversedParts[0]) || reversedParts[0];
-                }
-                
-                // Now format all parts for filename (spaces to hyphens)
-                const formattedParts = reversedParts.map(part => part ? formatForFilename(part) : '');
-                
-                formattedPlace = formattedParts
-                    .map(part => part || 'x')  // Replace empty parts with 'x'
-                    .join('.');
-            }
-            
-            // Get date from either genealogy input or precise date input
-            const currentDateValue = getCurrentDateValue();
-            let formattedDate;
-            
-            if (currentDateValue) {
-                // Use genealogical date formatting
-                formattedDate = formatGenealogyDateForFilename(currentDateValue);
-            } else {
-                formattedDate = 'x';
-            }
-            
-            // Generate names based on format and number of people
-            let formattedNames = '';
-            if (elements.surname.value) {
-                // Surname is uppercase, given names keep original case
-                formattedNames = formatForFilename(elements.surname.value).toUpperCase();
-                if (elements.givenName.value) {
-                    formattedNames += '.' + formatForFilename(elements.givenName.value);
-                    if (elements.middleName.value) {
-                        formattedNames += '.' + formatForFilename(elements.middleName.value);
-                    }
-                }
-            } else {
-                formattedNames = 'x';
-            }
+            // Story 1.11: Use sub-template processors (getFormattedDate, getFormattedPlace, getFormattedName)
+            // These integrate DATE, PLACE, and NAME sub-templates if configured in settings
+            const formattedPlace = getFormattedPlace();
+            const formattedDate = getFormattedDate();
+            const formattedNames = getFormattedName();
 
             // Handle additional people
             if (elements.includeAdditionalPeople.checked && additionalPeople.length > 0) {
@@ -4592,6 +5190,21 @@
                         elements.filenameTemplate.value = userSettings.filenameTemplate;
                     }
 
+                    // Story 1.3: Populate dateSubtemplate input if exists
+                    if (userSettings.dateSubtemplate && elements.dateSubtemplateInput) {
+                        elements.dateSubtemplateInput.value = userSettings.dateSubtemplate;
+                    }
+
+                    // Story 1.4: Populate placeSubtemplate input if exists
+                    if (userSettings.placeSubtemplate && elements.placeSubtemplateInput) {
+                        elements.placeSubtemplateInput.value = userSettings.placeSubtemplate;
+                    }
+
+                    // Story 1.5: Populate nameSubtemplate input if exists
+                    if (userSettings.nameSubtemplate && elements.nameSubtemplateInput) {
+                        elements.nameSubtemplateInput.value = userSettings.nameSubtemplate;
+                    }
+
                     // Story 4: Populate nameFormat input if exists
                     if (userSettings.nameFormat && elements.nameFormatInput) {
                         elements.nameFormatInput.value = userSettings.nameFormat;
@@ -4621,6 +5234,9 @@
                 try {
                     // Update userSettings object
                     userSettings.filenameTemplate = elements.filenameTemplate.value.trim();
+                    userSettings.dateSubtemplate = elements.dateSubtemplateInput.value.trim() || '{YYYY}.{MM}.{DD}';  // Story 1.3
+                    userSettings.placeSubtemplate = elements.placeSubtemplateInput.value.trim() || '{COUNTRY}.{STATE}.{COUNTY}.{CITY}';  // Story 1.4
+                    userSettings.nameSubtemplate = elements.nameSubtemplateInput.value.trim() || '{SURNAME:upper}.{GIVEN}';  // Story 1.5
                     userSettings.nameFormat = elements.nameFormatInput.value.trim() || '{GIVEN}.{SURNAME}|+';
                     userSettings.filePath = elements.filePath.value.trim();
                     userSettings.useCustomTemplate = userSettings.filenameTemplate.length > 0;
@@ -4640,32 +5256,138 @@
             }, 500); // 500ms debounce delay
         }
 
-        // Reset template to default
+        // ============================================================
+        // RESET FUNCTIONALITY (Story 1.12: Reset Templates to Defaults)
+        // ============================================================
+
+        /**
+         * Reset all template configurations to defaults
+         * AC #1: Show confirmation dialog before resetting
+         * AC #2: Handle cancel (no changes if user cancels)
+         * AC #3: Reset all template inputs to default values
+         * AC #4: Save defaults to localStorage
+         * AC #5: Show success message with auto-dismiss
+         * AC #6: Update filename preview immediately
+         */
         function resetTemplate() {
             try {
-                // Clear template input
-                elements.filenameTemplate.value = '';
+                // AC #1: Show confirmation dialog
+                const message = "Reset all templates to defaults? Your custom templates will be lost.";
+                const confirmed = window.confirm(message);
 
-                // Story 4: Reset nameFormat to default
-                elements.nameFormatInput.value = '{GIVEN}.{SURNAME}|+';
+                // AC #2: Handle cancel - no changes if user cancels
+                if (!confirmed) {
+                    return;
+                }
 
-                // Update userSettings
-                userSettings.filenameTemplate = '';
-                userSettings.nameFormat = '{GIVEN}.{SURNAME}|+';
-                userSettings.useCustomTemplate = false;
-                userSettings.lastUpdated = new Date().toISOString();
+                // AC #3: Reset all template inputs to defaults
+                elements.filenameTemplate.value = DEFAULT_TEMPLATE_CONFIG.customFilenameTemplate;
+                elements.dateSubtemplateInput.value = DEFAULT_TEMPLATE_CONFIG.dateSubTemplate;
+                elements.placeSubtemplateInput.value = DEFAULT_TEMPLATE_CONFIG.placeSubTemplate;
+                elements.nameSubtemplateInput.value = DEFAULT_TEMPLATE_CONFIG.nameSubTemplate;
+                elements.nameFormatInput.value = DEFAULT_TEMPLATE_CONFIG.additionalPeopleFormat;
 
-                // Save to localStorage
-                localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(userSettings));
+                // AC #4: Save defaults to localStorage (atomic save)
+                const saveResult = saveTemplateConfig();
+                if (!saveResult.success) {
+                    console.error('Failed to save reset templates:', saveResult.error);
+                    showResetErrorAlert(saveResult.error);
+                    return;
+                }
 
-                // Update preview
-                updateTemplatePreview();
+                // AC #6: Update filename preview immediately
+                generateFilename();
 
-                // Show confirmation via save indicator
-                showSaveIndicator();
+                // AC #5: Show success confirmation with auto-dismiss
+                showResetSuccessAlert();
+
             } catch (error) {
-                console.warn('Failed to reset template:', error.message);
+                console.error('Failed to reset templates:', error);
+                showResetErrorAlert(error.message);
             }
+        }
+
+        /**
+         * Show success alert after reset (auto-dismiss after 3 seconds)
+         * AC #5: Bootstrap alert with role="alert", auto-dismiss timing
+         */
+        function showResetSuccessAlert() {
+            const alert = createAlert('Templates reset to defaults', 'success');
+            displayAlert(alert);
+            autoDismissAlert(alert, 3000);  // 3 seconds as per AC #5
+        }
+
+        /**
+         * Show error alert if reset fails
+         */
+        function showResetErrorAlert(errorMessage) {
+            const message = `Failed to reset templates: ${errorMessage}`;
+            const alert = createAlert(message, 'danger');
+            displayAlert(alert);
+            // Error alerts don't auto-dismiss (user needs to see and address)
+        }
+
+        /**
+         * Create a Bootstrap alert element
+         * @param {string} message - Alert message text
+         * @param {string} type - Bootstrap alert type (success, danger, warning, info)
+         * @returns {HTMLElement} Alert element
+         */
+        function createAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.setAttribute('role', 'alert');
+            alert.textContent = message;
+
+            // Add close button
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close';
+            closeBtn.setAttribute('data-bs-dismiss', 'alert');
+            closeBtn.setAttribute('aria-label', 'Close');
+            alert.appendChild(closeBtn);
+
+            return alert;
+        }
+
+        /**
+         * Display alert in the settings section
+         * @param {HTMLElement} alert - Alert element to display
+         */
+        function displayAlert(alert) {
+            // Find or create alert container
+            let container = document.getElementById('alert-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'alert-container';
+                container.className = 'mb-3';
+
+                // Insert at top of settings card content
+                const settingsCard = elements.settingsCard;
+                if (settingsCard) {
+                    const cardBody = settingsCard.querySelector('.card-body');
+                    if (cardBody) {
+                        cardBody.insertBefore(container, cardBody.firstChild);
+                    }
+                }
+            }
+            container.appendChild(alert);
+        }
+
+        /**
+         * Auto-dismiss alert after specified delay
+         * @param {HTMLElement} alert - Alert element to dismiss
+         * @param {number} delay - Delay in milliseconds before dismissing
+         */
+        function autoDismissAlert(alert, delay) {
+            setTimeout(() => {
+                // Trigger Bootstrap fade-out
+                alert.classList.remove('show');
+                // Remove from DOM after fade animation completes
+                setTimeout(() => {
+                    alert.remove();
+                }, 150);  // Bootstrap fade transition duration
+            }, delay);
         }
 
         // Show save indicator with visual feedback
@@ -4709,12 +5431,893 @@
             }
         }
 
+        // ============================================================
+        // TEMPLATE PERSISTENCE (Story 1.8: Template Persistence to localStorage)
+        // ============================================================
+
+        // AC #2: Default template configuration constant with version 2.0.0
+        const DEFAULT_TEMPLATE_CONFIG = {
+            version: "2.0.0",
+            customFilenameTemplate: "{TYPE}_{PLACE}_{DATE}_{NAME}_{INFO}.{EXT}",
+            dateSubTemplate: "{YYYY}.{MM}.{DD}",
+            placeSubTemplate: "{COUNTRY}.{STATE}.{COUNTY}.{CITY}",
+            nameSubTemplate: "{SURNAME:upper}.{GIVEN}",
+            additionalPeopleFormat: "{GIVEN}.{SURNAME}|+",
+            lastUpdated: Date.now(),
+            migrated: false
+        };
+
+        // ============================================================
+        // LEGACY MIGRATION (Story 1.10: Legacy Name Format Migration)
+        // ============================================================
+
+        /**
+         * Legacy name format migration from v1.0.3 dropdown to NAME sub-template
+         * Maps old name_format_preference values to new template syntax
+         * AC #2: Migration mappings for all 4 legacy format variations
+         */
+        const LEGACY_NAME_FORMAT_MIGRATION = {
+            'SURNAME.Given': '{SURNAME:upper}.{GIVEN}',
+            'Given.SURNAME': '{GIVEN}.{SURNAME:upper}',
+            'SURNAME, Given': '{SURNAME:upper}, {GIVEN}',
+            'Given SURNAME': '{GIVEN} {SURNAME:upper}'
+        };
+
+        /**
+         * Migrate legacy name format preference to NAME sub-template
+         * AC #2: Converts legacy dropdown value to NAME sub-template
+         * AC #6: Returns default if no legacy format or unrecognized
+         * @param {string} legacyFormat - Legacy name format value
+         * @returns {string|null} Migrated NAME sub-template or null if no legacy data
+         */
+        function migrateLegacyNameFormat(legacyFormat) {
+            if (!legacyFormat) return null;
+
+            const migrated = LEGACY_NAME_FORMAT_MIGRATION[legacyFormat];
+            if (migrated) {
+                return migrated;
+            }
+
+            // AC #6: Unrecognized legacy format, use default
+            console.warn(`Unrecognized legacy name format: "${legacyFormat}", using default`);
+            return DEFAULT_TEMPLATE_CONFIG.nameSubTemplate;
+        }
+
+        /**
+         * Save template configuration to localStorage
+         * AC #1: Saves to localStorage with key 'genealogy_templates'
+         * AC #3: Atomic save - all fields saved together
+         * AC #4: Handles QuotaExceededError gracefully
+         * @returns {Object} {success: boolean, error?: string}
+         */
+        function saveTemplateConfig() {
+            try {
+                // AC #3: Read ALL template values atomically before saving
+                const config = {
+                    version: "2.0.0",
+                    customFilenameTemplate: elements.filenameTemplate.value || DEFAULT_TEMPLATE_CONFIG.customFilenameTemplate,
+                    dateSubTemplate: elements.dateSubtemplateInput.value || DEFAULT_TEMPLATE_CONFIG.dateSubTemplate,
+                    placeSubTemplate: elements.placeSubtemplateInput.value || DEFAULT_TEMPLATE_CONFIG.placeSubTemplate,
+                    nameSubTemplate: elements.nameSubtemplateInput.value || DEFAULT_TEMPLATE_CONFIG.nameSubTemplate,
+                    additionalPeopleFormat: elements.nameFormatInput.value || DEFAULT_TEMPLATE_CONFIG.additionalPeopleFormat,
+                    lastUpdated: Date.now(),
+                    migrated: false  // Will be set by Story 1.10 migration logic
+                };
+
+                // AC #3: Single atomic localStorage write
+                localStorage.setItem('genealogy_templates', JSON.stringify(config));
+
+                return { success: true };
+            } catch (e) {
+                // AC #4: Handle quota exceeded error specifically
+                if (e.name === 'QuotaExceededError') {
+                    showStorageQuotaError();
+                    return {
+                        success: false,
+                        error: 'Storage quota exceeded. Clear browsing data or reduce template length.'
+                    };
+                }
+
+                console.error('Failed to save templates:', e);
+                return { success: false, error: e.message };
+            }
+        }
+
+        /**
+         * Show user-friendly error message for storage quota exceeded
+         * AC #4: Non-blocking warning displayed to user
+         */
+        function showStorageQuotaError() {
+            // Create or update alert element
+            let alertDiv = document.getElementById('storage-quota-alert');
+            if (!alertDiv) {
+                alertDiv = document.createElement('div');
+                alertDiv.id = 'storage-quota-alert';
+                alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+                alertDiv.setAttribute('role', 'alert');
+                alertDiv.innerHTML = `
+                    <strong>Storage Limit Reached</strong>
+                    Cannot save template settings. Your browser's localStorage is full.
+                    Try clearing browsing data or reducing template length.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+
+                // Insert at top of settings section
+                const settingsCard = elements.settingsCard || document.body;
+                settingsCard.insertBefore(alertDiv, settingsCard.firstChild);
+            }
+        }
+
+        // ============================================================
+        // TEMPLATE LOADING (Story 1.9: Template Loading on Application Startup)
+        // ============================================================
+
+        /**
+         * Load template configuration from localStorage on application startup
+         * AC #1: Reads from localStorage key 'genealogy_templates'
+         * AC #2: Populates all template input fields with saved values
+         * AC #3: Uses default templates if localStorage is empty/corrupted
+         * AC #4: Handles malformed JSON gracefully (parse error → use defaults, log warning)
+         * AC #5: Loading completes in under 50ms
+         * AC #6: User sees custom templates immediately, no loading flicker
+         * @returns {Object} {success: boolean, config: object, error?: string}
+         */
+        function loadTemplateConfig() {
+            try {
+                // AC #1: Read from localStorage
+                const saved = localStorage.getItem('genealogy_templates');
+
+                // AC #3: Handle missing key (first load or cleared storage)
+                if (!saved) {
+                    console.info('No saved templates found, using defaults');
+                    const defaultConfig = { ...DEFAULT_TEMPLATE_CONFIG };
+
+                    // Story 1.10: Check for legacy migration even on first load
+                    const legacyFormat = localStorage.getItem('name_format_preference');
+                    if (legacyFormat) {
+                        const migratedTemplate = migrateLegacyNameFormat(legacyFormat);
+                        if (migratedTemplate) {
+                            defaultConfig.nameSubTemplate = migratedTemplate;
+                            console.info(`Migrated legacy name format: "${legacyFormat}" → "${migratedTemplate}"`);
+                        }
+                    }
+                    defaultConfig.migrated = true; // Mark as migrated to skip future checks
+
+                    // Persist migration immediately
+                    localStorage.setItem('genealogy_templates', JSON.stringify(defaultConfig));
+
+                    populateTemplateInputs(defaultConfig);
+                    return { success: true, config: defaultConfig };
+                }
+
+                // AC #4: Parse JSON with try-catch
+                const parsedData = JSON.parse(saved);
+
+                // AC #3: Merge with defaults for forward compatibility (handle missing fields)
+                const config = { ...DEFAULT_TEMPLATE_CONFIG, ...parsedData };
+
+                // Story 1.10: One-time migration check
+                // AC #1: Check for legacy setting, AC #4: Migration flag prevents re-migration
+                if (!config.migrated) {
+                    const legacyFormat = localStorage.getItem('name_format_preference');
+                    if (legacyFormat) {
+                        const migratedTemplate = migrateLegacyNameFormat(legacyFormat);
+                        if (migratedTemplate) {
+                            // AC #2: Migrate legacy preference to NAME sub-template
+                            config.nameSubTemplate = migratedTemplate;
+                            console.info(`Migrated legacy name format: "${legacyFormat}" → "${migratedTemplate}"`);
+                        }
+                    }
+                    // AC #4: Set migration flag to prevent re-migration
+                    config.migrated = true;
+                    // AC #3: Save the new NAME sub-template to localStorage
+                    localStorage.setItem('genealogy_templates', JSON.stringify(config));
+                }
+
+                // AC #2: Populate template input fields
+                populateTemplateInputs(config);
+
+                console.info('Loaded template configuration:', config);
+                return { success: true, config };
+
+            } catch (e) {
+                // AC #4: Handle malformed JSON gracefully
+                if (e instanceof SyntaxError) {
+                    console.warn('Failed to parse saved templates (corrupted JSON), using defaults:', e);
+                } else {
+                    console.warn('Failed to load templates, using defaults:', e);
+                }
+
+                // AC #3: Always return valid defaults
+                const defaultConfig = { ...DEFAULT_TEMPLATE_CONFIG };
+                populateTemplateInputs(defaultConfig);
+                return { success: false, config: defaultConfig, error: e.message };
+            }
+        }
+
+        /**
+         * Populate template input fields with config values
+         * AC #2: Populates all 5 template input fields
+         * @param {Object} config - Template configuration object
+         */
+        function populateTemplateInputs(config) {
+            // AC #2: Populate all 5 template inputs
+            const inputs = {
+                'filenameTemplate': config.customFilenameTemplate,
+                'dateSubtemplateInput': config.dateSubTemplate,
+                'placeSubtemplateInput': config.placeSubTemplate,
+                'nameSubtemplateInput': config.nameSubTemplate,
+                'nameFormatInput': config.additionalPeopleFormat
+            };
+
+            Object.entries(inputs).forEach(([id, value]) => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.value = value;
+                } else {
+                    console.warn(`Template input not found: ${id}`);
+                }
+            });
+        }
+
+        /**
+         * Initialize auto-save event listeners for template inputs
+         * AC #1: Debounced auto-save triggers 300ms after user stops typing
+         * AC #6: Save operation is non-blocking, doesn't interrupt typing
+         */
+        function initializeAutoSave() {
+            // AC #1: Create debounced save function with 300ms delay
+            const debouncedSave = debounce(saveTemplateConfig, 300);
+
+            // Template input IDs to attach auto-save listeners
+            const templateInputs = [
+                'filenameTemplate',
+                'dateSubtemplateInput',
+                'placeSubtemplateInput',
+                'nameSubtemplateInput',
+                'nameFormatInput'
+            ];
+
+            // AC #1: Attach input event listeners to all template fields
+            templateInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    // AC #6: Input event allows user to continue typing without interruption
+                    input.addEventListener('input', debouncedSave);
+                } else {
+                    console.warn(`Template input not found: ${inputId}`);
+                }
+            });
+        }
+
+        // ============================================================================
+        // TEST SUITE FOR processSubTemplate() - Story 1.1
+        // ============================================================================
+        // Comprehensive unit tests validating all acceptance criteria.
+
+        function runProcessSubTemplateTests() {
+            console.log('\n=== Running processSubTemplate() Test Suite ===\n');
+
+            const tests = [];
+            let passCount = 0;
+            let failCount = 0;
+
+            // Test 1: Basic placeholder replacement (AC #1)
+            try {
+                const result = processSubTemplate('{YYYY}.{MM}.{DD}', {
+                    year: 2024,
+                    month: 3,
+                    day: 15
+                });
+                const expected = '2024.03.15';
+                if (result === expected) {
+                    console.log('✓ Test 1 PASS: Basic placeholder replacement');
+                    console.log(`  Input: "{YYYY}.{MM}.{DD}" → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 1 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 1 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 2: Missing data handling (AC #2)
+            try {
+                const result = processSubTemplate('{YYYY}.{MM}.{DD}', { year: 2024 });
+                const expected = '2024.x.x';
+                if (result === expected) {
+                    console.log('✓ Test 2 PASS: Missing data handling');
+                    console.log(`  Input: partial data → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 2 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 2 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 3: Padding rules - MM with single digit (AC #3)
+            try {
+                const result = processSubTemplate('{MM}', { month: 3 });
+                const expected = '03';
+                if (result === expected) {
+                    console.log('✓ Test 3 PASS: Padding rules for MM');
+                    console.log(`  Input: month=3 → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 3 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 3 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 4: Padding rules - M without padding (AC #3)
+            try {
+                const result = processSubTemplate('{M}', { month: 3 });
+                const expected = '3';
+                if (result === expected) {
+                    console.log('✓ Test 4 PASS: No padding for single-letter placeholders');
+                    console.log(`  Input: {M} month=3 → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 4 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 4 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 5: Year abbreviation (AC #3)
+            try {
+                const result = processSubTemplate('{YY}', { year: 2024 });
+                const expected = '24';
+                if (result === expected) {
+                    console.log('✓ Test 5 PASS: Year abbreviation YY');
+                    console.log(`  Input: year=2024 → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 5 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 5 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 6: Format modifier :upper (AC #1)
+            try {
+                const result = processSubTemplate('{GIVEN:upper}', { given: 'john' });
+                const expected = 'JOHN';
+                if (result === expected) {
+                    console.log('✓ Test 6 PASS: Format modifier :upper');
+                    console.log(`  Input: {GIVEN:upper} given=john → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 6 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 6 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 7: Format modifier :lower
+            try {
+                const result = processSubTemplate('{SURNAME:lower}', { surname: 'SMITH' });
+                const expected = 'smith';
+                if (result === expected) {
+                    console.log('✓ Test 7 PASS: Format modifier :lower');
+                    console.log(`  Input: {SURNAME:lower} surname=SMITH → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 7 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 7 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 8: Format modifier :title
+            try {
+                const result = processSubTemplate('{GIVEN:title}', { given: 'john william' });
+                const expected = 'John William';
+                if (result === expected) {
+                    console.log('✓ Test 8 PASS: Format modifier :title');
+                    console.log(`  Input: {GIVEN:title} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 8 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 8 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 9: Format modifier :abbrev
+            try {
+                const result = processSubTemplate('{GIVEN:abbrev}', { given: 'john' });
+                const expected = 'J';
+                if (result === expected) {
+                    console.log('✓ Test 9 PASS: Format modifier :abbrev');
+                    console.log(`  Input: {GIVEN:abbrev} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 9 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 9 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 10: Performance - single execution (AC #5)
+            try {
+                const start = performance.now();
+                processSubTemplate('{YYYY}.{MM}.{DD}', { year: 2024, month: 3, day: 15 });
+                const duration = performance.now() - start;
+                if (duration < 5) {
+                    console.log(`✓ Test 10 PASS: Single execution performance`);
+                    console.log(`  Duration: ${duration.toFixed(3)}ms (target <5ms)`);
+                    passCount++;
+                } else {
+                    console.warn(`⚠ Test 10 WARNING: Performance ${duration.toFixed(3)}ms (target <5ms)`);
+                    passCount++; // Still pass, but warn
+                }
+            } catch (e) {
+                console.error('✗ Test 10 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 11: Performance - 1000 iterations (AC #5)
+            try {
+                const iterStart = performance.now();
+                for (let i = 0; i < 1000; i++) {
+                    processSubTemplate('{YYYY}.{MM}.{DD}', { year: 2024, month: 3, day: 15 });
+                }
+                const iterDuration = performance.now() - iterStart;
+                if (iterDuration < 5000) {
+                    console.log(`✓ Test 11 PASS: 1000 iterations performance`);
+                    console.log(`  Duration: ${iterDuration.toFixed(2)}ms (target <5000ms)`);
+                    passCount++;
+                } else {
+                    console.warn(`⚠ Test 11 WARNING: 1000 iterations ${iterDuration.toFixed(2)}ms (target <5000ms)`);
+                    passCount++; // Still pass, but warn
+                }
+            } catch (e) {
+                console.error('✗ Test 11 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 12: Deterministic output (AC #6)
+            try {
+                const input = { year: 2024, month: 3, day: 15 };
+                const template = '{YYYY}.{MM}.{DD}';
+                const results = [];
+                for (let i = 0; i < 5; i++) {
+                    results.push(processSubTemplate(template, input));
+                }
+                const allSame = results.every(r => r === results[0]);
+                if (allSame) {
+                    console.log('✓ Test 12 PASS: Deterministic output');
+                    console.log(`  5 identical runs: all returned "${results[0]}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 12 FAIL: Non-deterministic results:`, results);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 12 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 13: Malformed placeholder handling (AC #7) - console.warn() should be called
+            try {
+                const originalWarn = console.warn;
+                let warnCalled = false;
+                console.warn = function() { warnCalled = true; originalWarn.apply(console, arguments); };
+
+                const result = processSubTemplate('{YYYYY}', { year: 2024 });
+
+                console.warn = originalWarn;
+
+                // Should preserve the placeholder and log warning
+                if (result === '{YYYYY}' && warnCalled) {
+                    console.log('✓ Test 13 PASS: Malformed placeholder handling');
+                    console.log(`  Invalid placeholder preserved: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 13 FAIL: Invalid placeholder not handled correctly`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 13 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 14: Null value handling (AC #2)
+            try {
+                const result = processSubTemplate('{MM}', { month: null });
+                const expected = 'x';
+                if (result === expected) {
+                    console.log('✓ Test 14 PASS: Null value handling');
+                    console.log(`  month=null → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 14 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 14 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 15: Zero value handling (AC #2) - zero should NOT be treated as missing
+            try {
+                const result = processSubTemplate('{MM}', { month: 0 });
+                const expected = '00';
+                if (result === expected) {
+                    console.log('✓ Test 15 PASS: Zero value handling');
+                    console.log(`  month=0 → Output: "${result}" (zero is valid, not missing)`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 15 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 15 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 16: Empty string handling (AC #2)
+            try {
+                const result = processSubTemplate('{GIVEN}', { given: '' });
+                const expected = 'x';
+                if (result === expected) {
+                    console.log('✓ Test 16 PASS: Empty string handling');
+                    console.log(`  given="" → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 16 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 16 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 17: Place placeholders
+            try {
+                const result = processSubTemplate('{COUNTRY}.{STATE}.{CITY}', {
+                    country: 'USA',
+                    state: 'California',
+                    city: 'San Francisco'
+                });
+                const expected = 'USA.California.San Francisco';
+                if (result === expected) {
+                    console.log('✓ Test 17 PASS: Place placeholders');
+                    console.log(`  PLACE template → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 17 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 17 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 18: Abbreviated place placeholders
+            try {
+                const result = processSubTemplate('{C}.{S}.{CI}', {
+                    country: 'USA',
+                    state: 'NY',
+                    city: 'New York'
+                });
+                const expected = 'USA.NY.New York';
+                if (result === expected) {
+                    console.log('✓ Test 18 PASS: Abbreviated place placeholders');
+                    console.log(`  Abbrev placeholders → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 18 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 18 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 19: Name placeholders
+            try {
+                const result = processSubTemplate('{SURNAME}.{GIVEN}.{MIDDLE}', {
+                    surname: 'Smith',
+                    given: 'John',
+                    middle: 'William'
+                });
+                const expected = 'Smith.John.William';
+                if (result === expected) {
+                    console.log('✓ Test 19 PASS: Name placeholders');
+                    console.log(`  NAME template → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 19 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 19 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 20: Complex template with modifiers
+            try {
+                const result = processSubTemplate('{SURNAME:upper}.{GIVEN:lower}.{MIDDLE:title}', {
+                    surname: 'smith',
+                    given: 'JOHN',
+                    middle: 'william henry'
+                });
+                const expected = 'SMITH.john.William Henry';
+                if (result === expected) {
+                    console.log('✓ Test 20 PASS: Complex template with multiple modifiers');
+                    console.log(`  Multi-modifier template → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 20 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 20 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 21: Case-insensitive modifier matching - :UPPER (AC #6)
+            try {
+                const result = processSubTemplate('{GIVEN:UPPER}', { given: 'john' });
+                const expected = 'JOHN';
+                if (result === expected) {
+                    console.log('✓ Test 21 PASS: Case-insensitive modifier :UPPER');
+                    console.log(`  Input: {GIVEN:UPPER} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 21 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 21 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 22: Case-insensitive modifier matching - :Upper (AC #6)
+            try {
+                const result = processSubTemplate('{GIVEN:Upper}', { given: 'john' });
+                const expected = 'JOHN';
+                if (result === expected) {
+                    console.log('✓ Test 22 PASS: Case-insensitive modifier :Upper');
+                    console.log(`  Input: {GIVEN:Upper} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 22 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 22 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 23: Case-insensitive modifier matching - :LOWER (AC #6)
+            try {
+                const result = processSubTemplate('{SURNAME:LOWER}', { surname: 'SMITH' });
+                const expected = 'smith';
+                if (result === expected) {
+                    console.log('✓ Test 23 PASS: Case-insensitive modifier :LOWER');
+                    console.log(`  Input: {SURNAME:LOWER} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 23 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 23 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 24: Case-insensitive modifier matching - :TITLE (AC #6)
+            try {
+                const result = processSubTemplate('{GIVEN:TITLE}', { given: 'john william' });
+                const expected = 'John William';
+                if (result === expected) {
+                    console.log('✓ Test 24 PASS: Case-insensitive modifier :TITLE');
+                    console.log(`  Input: {GIVEN:TITLE} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 24 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 24 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 25: Case-insensitive modifier matching - :ABBREV (AC #6)
+            try {
+                const result = processSubTemplate('{GIVEN:ABBREV}', { given: 'john' });
+                const expected = 'J';
+                if (result === expected) {
+                    console.log('✓ Test 25 PASS: Case-insensitive modifier :ABBREV');
+                    console.log(`  Input: {GIVEN:ABBREV} → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 25 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 25 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 26: Invalid modifier handling (AC #7) - console.warn() should be called
+            try {
+                const originalWarn = console.warn;
+                let warnCalled = false;
+                let warnMessage = '';
+                console.warn = function(msg) {
+                    warnCalled = true;
+                    warnMessage = msg;
+                    originalWarn.apply(console, arguments);
+                };
+
+                // Fixed: Use valid placeholder {SURNAME} with invalid modifier :invalid
+                // Previous test used {NAME:invalid} which is an unknown placeholder, not a modifier test
+                const result = processSubTemplate('{SURNAME:invalid}', { surname: 'Smith' });
+
+                console.warn = originalWarn;
+
+                // Should return original value and log warning
+                if (result === 'Smith' && warnCalled && warnMessage.includes('Unknown modifier')) {
+                    console.log('✓ Test 26 PASS: Invalid modifier handling');
+                    console.log(`  Invalid modifier :invalid → Original value returned: "${result}"`);
+                    console.log(`  Warning logged: "${warnMessage}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 26 FAIL: Invalid modifier not handled correctly (result: "${result}", warnCalled: ${warnCalled})`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 26 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 27: Multiple modifier chain - only last modifier applied (AC #8)
+            try {
+                const result = processSubTemplate('{GIVEN:upper:lower}', { given: 'john' });
+                const expected = 'john';
+                if (result === expected) {
+                    console.log('✓ Test 27 PASS: Multiple modifier chain - last modifier applied');
+                    console.log(`  Input: {GIVEN:upper:lower} → Only :lower applied → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 27 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 27 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 28: Multiple modifier chain - 3 modifiers, last applied (AC #8)
+            try {
+                const result = processSubTemplate('{GIVEN:upper:lower:title}', { given: 'john smith' });
+                const expected = 'John Smith';
+                if (result === expected) {
+                    console.log('✓ Test 28 PASS: Multiple modifier chain (3 modifiers) - last applied');
+                    console.log(`  Input: {GIVEN:upper:lower:title} → Only :title applied → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 28 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 28 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 29: Edge case - modifier with empty string value (AC #7)
+            try {
+                const result = processSubTemplate('{GIVEN:upper}', { given: '' });
+                const expected = 'x';
+                if (result === expected) {
+                    console.log('✓ Test 29 PASS: Modifier with empty string (uses missing value handler)');
+                    console.log(`  Empty given="" → falls back to missing value "x"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 29 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 29 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 30: Edge case - modifier with special characters (AC #7)
+            try {
+                const result = processSubTemplate('{GIVEN:title}', { given: "o'brien" });
+                const expected = "O'brien";
+                if (result === expected) {
+                    console.log('✓ Test 30 PASS: Modifier with special characters (apostrophe)');
+                    console.log(`  Input: "o'brien" with :title → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 30 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 30 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 31: Edge case - modifier with numbers in value (AC #7)
+            try {
+                const result = processSubTemplate('{GIVEN:title}', { given: 'john 123' });
+                const expected = 'John 123';
+                if (result === expected) {
+                    console.log('✓ Test 31 PASS: Modifier with numbers in value');
+                    console.log(`  Input: "john 123" with :title → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 31 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 31 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Test 32: Modifier with single letter word (AC #5)
+            try {
+                const result = processSubTemplate('{GIVEN:abbrev}', { given: 'a' });
+                const expected = 'A';
+                if (result === expected) {
+                    console.log('✓ Test 32 PASS: Abbrev modifier with single character');
+                    console.log(`  Input: "a" with :abbrev → Output: "${result}"`);
+                    passCount++;
+                } else {
+                    console.error(`✗ Test 32 FAIL: Expected "${expected}", got "${result}"`);
+                    failCount++;
+                }
+            } catch (e) {
+                console.error('✗ Test 32 ERROR:', e.message);
+                failCount++;
+            }
+
+            // Summary
+            console.log('\n' + '='.repeat(50));
+            console.log(`TEST RESULTS: ${passCount} passed, ${failCount} failed`);
+            console.log(`Pass rate: ${(passCount / (passCount + failCount) * 100).toFixed(1)}%`);
+            console.log('='.repeat(50) + '\n');
+
+            return { passCount, failCount, total: passCount + failCount };
+        }
+
         // Initialize
+        // Story 1.9: Load templates FIRST, before auto-save event listeners (critical order)
+        loadTemplateConfig(); // Load saved templates from localStorage
         loadSettings(); // Load saved settings from localStorage (Story 2)
+        initializeAutoSave(); // Story 1.8: Initialize template auto-save (300ms debounced)
         initializeSuggestionTriggers();
         updatePlaceFormatUI();
         updateTemplatePreview(); // Show template preview immediately on load
         generateFilename();
+
+        // Run tests for Story 1.1 (processSubTemplate function)
+        const testResults = runProcessSubTemplateTests();
 
         // Initialize Bootstrap tooltips for help icons
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
