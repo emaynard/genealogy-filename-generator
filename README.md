@@ -1,6 +1,6 @@
 # Genealogy Filename Generator
 
-**Version 1.0.3** | A specialized tool for genealogists to generate standardized filenames and metadata commands for genealogy documents.
+**Version 2.0.0** | A specialized tool for genealogists to generate standardized, customizable filenames and metadata commands for genealogy documents.
 
 ## Overview
 
@@ -8,6 +8,9 @@ The Genealogy Filename Generator is a static web application that helps genealog
 
 ### Key Features
 
+- **🎨 Customizable Sub-templates (NEW in v2.0)** - Full control over date, place, and name formatting patterns
+- **✨ Format Modifiers (NEW in v2.0)** - Apply `:upper`, `:lower`, `:title`, `:abbrev` transformations to any field
+- **⚙️ Template Configuration UI (NEW in v2.0)** - Visual editor with validation, hints, and real-time preview
 - **Standardized Filename Generation** - Creates consistent, meaningful filenames following genealogy best practices
 - **GEDCOM File Support** - Parses GEDCOM (.ged) files with support for 10,000+ individuals
 - **Intelligent Autocomplete** - Context-aware suggestions for surnames, given names, places, and relationships
@@ -17,15 +20,33 @@ The Genealogy Filename Generator is a static web application that helps genealog
 - **Privacy-First** - All processing happens in your browser; your GEDCOM data never leaves your computer
 - **Zero Setup** - Single HTML file, no installation or build process required
 
-### Example Filename
+### Example Filenames
 
+**Default Format (v2.0):**
 ```
 Birth_USA.Ohio.Medina-County.Wadsworth_1922.01.04_KEENER.Jane.Alma_Birth-Certificate.jpg
 ```
 
-Following the pattern:
+**Custom Format Examples (NEW - Fully Customizable):**
 ```
-[Type]_[Reverse.Place]_[Reverse.Date]_[SURNAME.Given.Middle]_[info].ext
+# European date format: DD-MM-YYYY
+Birth_USA.Ohio.Medina-County.Wadsworth_04-01-1922_KEENER.Jane.Alma_Birth-Certificate.jpg
+
+# Abbreviated place: City, State
+Birth_Wadsworth, Ohio_1922.01.04_KEENER.Jane.Alma_Birth-Certificate.jpg
+
+# Given name first: Given SURNAME
+Birth_USA.Ohio.Medina-County.Wadsworth_1922.01.04_Jane KEENER_Birth-Certificate.jpg
+```
+
+Following the customizable pattern:
+```
+[Type]_[PLACE]_[DATE]_[NAME]_[info].ext
+
+Where:
+  DATE = Your custom date sub-template (e.g., {YYYY}.{MM}.{DD} or {DD}-{MM}-{YYYY})
+  PLACE = Your custom place sub-template (e.g., {CITY}, {STATE} or {COUNTRY}.{STATE}.{CITY})
+  NAME = Your custom name sub-template (e.g., {SURNAME:upper}.{GIVEN} or {GIVEN} {SURNAME})
 ```
 
 ## Quick Start
@@ -48,6 +69,76 @@ That's it! No installation, no dependencies, no server required.
 - Edge 90+
 
 Internet Explorer is not supported (requires ES6+).
+
+## What's New in v2.0
+
+### 🎨 Sub-template Formatting System
+
+Version 2.0 introduces a revolutionary **composable sub-template architecture** that gives you complete control over filename formatting:
+
+#### DATE Sub-template
+Customize how dates appear using placeholders:
+- `{YYYY}` - 4-digit year (2024)
+- `{YY}` - 2-digit year (24)
+- `{MM}` - Zero-padded month (03)
+- `{M}` - Month without padding (3)
+- `{DD}` - Zero-padded day (05)
+- `{D}` - Day without padding (5)
+
+**Examples:**
+- `{YYYY}.{MM}.{DD}` → `2024.03.05` (default)
+- `{DD}-{MM}-{YYYY}` → `05-03-2024` (European)
+- `{M}/{D}/{YY}` → `3/5/24` (US short)
+
+#### PLACE Sub-template
+Control place hierarchy and formatting:
+- `{COUNTRY}` or `{C}` - Country name/abbreviation
+- `{STATE}` or `{S}` - State/Province
+- `{COUNTY}` or `{CO}` - County
+- `{CITY}` or `{CI}` - City/Town
+
+**Examples:**
+- `{COUNTRY}.{STATE}.{COUNTY}.{CITY}` → `USA.Ohio.Medina-County.Wadsworth` (default)
+- `{CITY}, {STATE}` → `Wadsworth, Ohio`
+- `{C}.{S}` → `USA.OH` (abbreviated)
+
+#### NAME Sub-template
+Format names exactly how you want:
+- `{SURNAME}` - Surname/family name
+- `{GIVEN}` - Given/first name
+- `{MIDDLE}` - Middle name
+
+**Examples:**
+- `{SURNAME:upper}.{GIVEN}` → `KEENER.Jane` (default)
+- `{GIVEN} {SURNAME}` → `Jane KEENER`
+- `{SURNAME:upper}, {GIVEN} {MIDDLE:abbrev}` → `KEENER, Jane A`
+
+#### Format Modifiers
+Apply text transformations to any placeholder:
+- `:upper` - UPPERCASE
+- `:lower` - lowercase
+- `:title` - Title Case
+- `:abbrev` - First letter only
+
+**Examples:**
+- `{SURNAME:upper}` → `SMITH`
+- `{GIVEN:title}` → `John Doe`
+- `{MIDDLE:abbrev}` → `J`
+
+### Template Configuration UI
+
+- Visual editor in Settings section
+- Real-time validation with helpful error messages
+- Placeholder hints and tooltips
+- "Reset to Defaults" button
+- Auto-save to localStorage (300ms debounce)
+
+### Migration from v1.x
+
+Existing users will have their settings automatically migrated:
+- Legacy "Name Format" dropdown → NAME sub-template
+- All saved preferences preserved
+- Default behavior unchanged (unless you customize)
 
 ## Features in Detail
 
@@ -161,8 +252,9 @@ This project follows [Semantic Versioning](https://semver.org/):
 ## Project Status
 
 - **Status**: Functional, production-ready
-- **Current Version**: 1.0.3
-- **Last Updated**: 2025-11-15
+- **Current Version**: 2.0.0
+- **Last Updated**: 2025-12-04
+- **Latest Release**: Epic 1 - Sub-template Formatting System complete
 
 ## Support
 
