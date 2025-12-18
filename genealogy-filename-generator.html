@@ -5435,9 +5435,9 @@
         // TEMPLATE PERSISTENCE (Story 1.8: Template Persistence to localStorage)
         // ============================================================
 
-        // AC #2: Default template configuration constant with version 2.0.0
+        // AC #2: Default template configuration constant with version 2.0.1
         const DEFAULT_TEMPLATE_CONFIG = {
-            version: "2.0.0",
+            version: "2.0.1",
             customFilenameTemplate: "{TYPE}_{PLACE}_{DATE}_{NAME}_{INFO}.{EXT}",
             dateSubTemplate: "{YYYY}.{MM}.{DD}",
             placeSubTemplate: "{COUNTRY}.{STATE}.{COUNTY}.{CITY}",
@@ -5494,7 +5494,7 @@
             try {
                 // AC #3: Read ALL template values atomically before saving
                 const config = {
-                    version: "2.0.0",
+                    version: "2.0.1",
                     customFilenameTemplate: elements.filenameTemplate.value || DEFAULT_TEMPLATE_CONFIG.customFilenameTemplate,
                     dateSubTemplate: elements.dateSubtemplateInput.value || DEFAULT_TEMPLATE_CONFIG.dateSubTemplate,
                     placeSubTemplate: elements.placeSubtemplateInput.value || DEFAULT_TEMPLATE_CONFIG.placeSubTemplate,
