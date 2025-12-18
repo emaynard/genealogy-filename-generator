@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2025-12-17
+
+### Changed
+
+- **Documentation:** Updated Quick Start section in README to prioritize GitHub Pages hosted version as the easiest installation method
+- **README:** Reorganized Quick Start to show hosted version first, followed by local installation as secondary option
+- **Last Updated Date:** Updated project status to reflect current date
+
+### Notes
+
+- No code changes in this patch release
+- Documentation improvements for better user experience
+- GitHub Pages link: https://emaynard.github.io/genealogy-filename-generator/
+
 ## [2.0.0] - 2025-12-04
 
 ### 🎉 Major Release: Sub-template Formatting System (Epic 1)

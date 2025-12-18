@@ -1,6 +1,6 @@
 # Genealogy Filename Generator
 
-**Version 2.0.0** | A specialized tool for genealogists to generate standardized, customizable filenames and metadata commands for genealogy documents.
+**Version 2.0.1** | A specialized tool for genealogists to generate standardized, customizable filenames and metadata commands for genealogy documents.
 
 ## Overview
 
@@ -24,19 +24,19 @@ The Genealogy Filename Generator is a static web application that helps genealog
 
 **Default Format (v2.0):**
 ```
-Birth_USA.Ohio.Medina-County.Wadsworth_1922.01.04_KEENER.Jane.Alma_Birth-Certificate.jpg
+Birth_USA.Ohio.Medina-County.Wadsworth_1922.01.04_DOE.Jane.Alma_Birth-Certificate.jpg
 ```
 
 **Custom Format Examples (NEW - Fully Customizable):**
 ```
 # European date format: DD-MM-YYYY
-Birth_USA.Ohio.Medina-County.Wadsworth_04-01-1922_KEENER.Jane.Alma_Birth-Certificate.jpg
+Birth_USA.Ohio.Medina-County.Wadsworth_04-01-1922_DOE.Jane.Alma_Birth-Certificate.jpg
 
 # Abbreviated place: City, State
-Birth_Wadsworth, Ohio_1922.01.04_KEENER.Jane.Alma_Birth-Certificate.jpg
+Birth_Wadsworth, Ohio_1922.01.04_DOE.Jane.Alma_Birth-Certificate.jpg
 
 # Given name first: Given SURNAME
-Birth_USA.Ohio.Medina-County.Wadsworth_1922.01.04_Jane KEENER_Birth-Certificate.jpg
+Birth_USA.Ohio.Medina-County.Wadsworth_1922.01.04_Jane DOE_Birth-Certificate.jpg
 ```
 
 Following the customizable pattern:
@@ -51,15 +51,24 @@ Where:
 
 ## Quick Start
 
-### For Users
+### GitHub Pages (Easiest)
+
+1. Visit the [Genealogy Filename Generator](https://emaynard.github.io/genealogy-filename-generator/) hosted version
+2. (Optional) Upload your GEDCOM file for intelligent autocomplete suggestions
+3. Fill in the form fields with your document details
+4. Copy the generated filename or EXIFtool command
+
+No installation, no dependencies, no server setup required. Works entirely in your browser.
+
+### Local Install
+
+Prefer to download and run locally?
 
 1. Download `genealogy-filename-generator.html` from the [latest release](../../releases)
 2. Open the file in any modern web browser (Chrome, Firefox, Safari, Edge)
 3. (Optional) Upload your GEDCOM file for intelligent autocomplete suggestions
 4. Fill in the form fields with your document details
 5. Copy the generated filename or EXIFtool command
-
-That's it! No installation, no dependencies, no server required.
 
 ### Browser Requirements
 
@@ -109,9 +118,9 @@ Format names exactly how you want:
 - `{MIDDLE}` - Middle name
 
 **Examples:**
-- `{SURNAME:upper}.{GIVEN}` → `KEENER.Jane` (default)
-- `{GIVEN} {SURNAME}` → `Jane KEENER`
-- `{SURNAME:upper}, {GIVEN} {MIDDLE:abbrev}` → `KEENER, Jane A`
+- `{SURNAME:upper}.{GIVEN}` → `DOE.Jane` (default)
+- `{GIVEN} {SURNAME}` → `Jane DOE`
+- `{SURNAME:upper}, {GIVEN} {MIDDLE:abbrev}` → `DOE, Jane A`
 
 #### Format Modifiers
 Apply text transformations to any placeholder:
@@ -131,7 +140,7 @@ Apply text transformations to any placeholder:
 - Real-time validation with helpful error messages
 - Placeholder hints and tooltips
 - "Reset to Defaults" button
-- Auto-save to localStorage (300ms debounce)
+- Auto-saves to Browser localStorage
 
 ### Migration from v1.x
 
@@ -252,9 +261,9 @@ This project follows [Semantic Versioning](https://semver.org/):
 ## Project Status
 
 - **Status**: Functional, production-ready
-- **Current Version**: 2.0.0
-- **Last Updated**: 2025-12-04
-- **Latest Release**: Epic 1 - Sub-template Formatting System complete
+- **Current Version**: 2.0.1
+- **Last Updated**: 2025-12-17
+- **Latest Release**: v2.0.1 - Documentation updates
 
 ## Support
 
