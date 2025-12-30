@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story 2.1 Test - Autocomplete Dropdown Visual Structure</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        .test-section {
+            margin-bottom: 3rem;
+            padding: 1.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+        }
+        .test-status {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+        }
+        .test-pass { background-color: #d1e7dd; color: #0f5132; }
+        .test-fail { background-color: #f8d7da; color: #842029; }
+        .test-pending { background-color: #fff3cd; color: #664d03; }
+        .measurement-display {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            font-family: monospace;
+            margin: 1rem 0;
+        }
+        .visual-indicator {
+            width: 44px;
+            height: 44px;
+            border: 2px solid #0d6efd;
+            display: inline-block;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <h1 class="mb-4">
+            <i class="bi bi-clipboard-check text-primary"></i>
+            Story 2.1 Test Suite: Autocomplete Dropdown Visual Structure
+        </h1>
+
+        <div class="alert alert-info">
+            <h5><i class="bi bi-info-circle"></i> Test Instructions</h5>
+            <p>This test file validates all acceptance criteria for Story 2.1. Open the main application in another tab/window to perform the tests.</p>
+            <p><strong>Main App:</strong> <a href="genealogy-filename-generator.html" target="_blank">genealogy-filename-generator.html</a></p>
+        </div>
+
+        <!-- AC #1: Dropdown Appearance -->
+        <div class="test-section">
+            <h3>AC #1: Dropdown Appears Below Input Field</h3>
+            <p><strong>Requirement:</strong> Dropdown appears below input field when user types, showing filtered GEDCOM suggestions</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Load a GEDCOM file with test data (should include multiple people and places)</li>
+                <li>Focus on "Surname" field</li>
+                <li>Type "S" or first letter of a surname in your GEDCOM</li>
+                <li>Observe dropdown appearance</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Dropdown appears below the surname input field</li>
+                <li class="test-pending">✓ Dropdown shows filtered surnames starting with or containing the typed letter</li>
+                <li class="test-pending">✓ Dropdown is visually positioned directly below the input</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>Manual Verification:</strong> Mark as PASS if dropdown appears below input with filtered suggestions
+            </div>
+        </div>
+
+        <!-- AC #2: Bootstrap Styling -->
+        <div class="test-section">
+            <h3>AC #2: Bootstrap Styling with Borders, Shadows, and Hover States</h3>
+            <p><strong>Requirement:</strong> Dropdown has Bootstrap styling with proper borders, shadows, and hover states</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Open dropdown (type in name or place field)</li>
+                <li>Inspect dropdown using DevTools (right-click → Inspect)</li>
+                <li>Hover over suggestion items</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Dropdown has 1px border with rgba(0, 0, 0, 0.15) color</li>
+                <li class="test-pending">✓ Border-radius is 0.375rem (6px) matching Bootstrap</li>
+                <li class="test-pending">✓ Box-shadow is visible and provides depth perception</li>
+                <li class="test-pending">✓ Hover changes background to Bootstrap primary color with transparency</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>DevTools Check:</strong>
+                <pre class="measurement-display">
+Expected CSS Properties:
+- border: 1px solid rgba(0, 0, 0, 0.15)
+- border-radius: 0.375rem
+- box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15)
+- hover background: rgba(13, 110, 253, 0.1)
+                </pre>
+            </div>
+        </div>
+
+        <!-- AC #3: Maximum 10 Suggestions -->
+        <div class="test-section">
+            <h3>AC #3: Maximum 10 Suggestions Displayed</h3>
+            <p><strong>Requirement:</strong> Maximum 10 suggestions shown to prevent overwhelming list</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Load GEDCOM with 50+ surnames (or use large test file)</li>
+                <li>Focus on "Surname" field</li>
+                <li>Type a common letter (e.g., "S") that matches many surnames</li>
+                <li>Count visible suggestion items in dropdown</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Exactly 10 or fewer suggestion items displayed</li>
+                <li class="test-pending">✓ Scrollbar does NOT appear (all 10 items fit in max-height 440px)</li>
+                <li class="test-pending">✓ If more than 10 matches exist, only first 10 shown</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>Manual Count:</strong> Count visible items in dropdown. Should never exceed 10.
+                <div class="measurement-display">
+Number of items displayed: <input type="number" class="form-control d-inline-block" style="width: 100px;" min="0" max="10" placeholder="Count">
+                </div>
+            </div>
+        </div>
+
+        <!-- AC #4: Touch Target Size (44px) -->
+        <div class="test-section">
+            <h3>AC #4: Touch Target Size (44px minimum height)</h3>
+            <p><strong>Requirement:</strong> Each suggestion item has clear text, adequate padding (12px vertical, 16px horizontal), hover states, and min 44px height</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Open dropdown with suggestions</li>
+                <li>Right-click on a suggestion item → Inspect Element</li>
+                <li>Check "Computed" tab in DevTools</li>
+                <li>Find height, padding values</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Min-height is 44px (WCAG 2.5.5 compliant)</li>
+                <li class="test-pending">✓ Padding is 12px vertical, 16px horizontal</li>
+                <li class="test-pending">✓ Font size is 14px (clear and readable)</li>
+                <li class="test-pending">✓ Touch target feels comfortable (test with larger cursor or finger)</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>DevTools Measurements:</strong>
+                <pre class="measurement-display">
+Expected Computed Values:
+- min-height: 44px
+- padding-top: 12px
+- padding-bottom: 12px
+- padding-left: 16px
+- padding-right: 16px
+- font-size: 14px
+                </pre>
+
+                <strong>Visual Reference (44px):</strong>
+                <div class="visual-indicator"></div>
+                <span>← This box is exactly 44px × 44px (minimum touch target size)</span>
+            </div>
+        </div>
+
+        <!-- AC #5: Immediate Display on Focus -->
+        <div class="test-section">
+            <h3>AC #5: Dropdown Appears Immediately on Focus (0ms delay)</h3>
+            <p><strong>Requirement:</strong> Dropdown appears immediately on focus (0ms delay) if field empty but GEDCOM loaded</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Load GEDCOM file with data</li>
+                <li>Click on "Surname" field (do NOT type anything)</li>
+                <li>Observe dropdown timing</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Dropdown appears instantly when field receives focus (no visible delay)</li>
+                <li class="test-pending">✓ Shows all available suggestions (up to 10) from GEDCOM data</li>
+                <li class="test-pending">✓ No debounce delay on focus (0ms)</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>Timing Test:</strong> Dropdown should appear in &lt;50ms (perceived as instant). Any delay &gt;100ms is noticeable and fails this AC.
+            </div>
+        </div>
+
+        <!-- AC #6: Disappear on Blur/Outside Click -->
+        <div class="test-section">
+            <h3>AC #6: Dropdown Disappears on Blur/Outside Click</h3>
+            <p><strong>Requirement:</strong> Dropdown disappears when clicking outside or field loses focus</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Open dropdown by typing in a field</li>
+                <li><strong>Test 6a:</strong> Click on empty space outside dropdown</li>
+                <li>Reopen dropdown</li>
+                <li><strong>Test 6b:</strong> Tab to next field (keyboard navigation)</li>
+                <li>Reopen dropdown</li>
+                <li><strong>Test 6c:</strong> Click on another input field</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Test 6a: Dropdown closes when clicking outside</li>
+                <li class="test-pending">✓ Test 6b: Dropdown closes when tabbing away</li>
+                <li class="test-pending">✓ Test 6c: Dropdown closes when clicking other field</li>
+                <li class="test-pending">✓ Selection works before close (click on suggestion fills field)</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>Note:</strong> Brief delay (150-200ms) before closing on blur is acceptable to allow click selection
+            </div>
+        </div>
+
+        <!-- AC #7: Smart Positioning (Flip Upward) -->
+        <div class="test-section">
+            <h3>AC #7: Smart Positioning Near Screen Edges</h3>
+            <p><strong>Requirement:</strong> Dropdown positioned correctly even near screen edges (flip upward if needed)</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Resize browser window to smaller height (~600px)</li>
+                <li>Scroll page so "Additional People" section is near bottom of viewport</li>
+                <li>Focus on additional person name field near bottom</li>
+                <li>Observe dropdown position</li>
+                <li>Scroll back to top and test fields at top of page</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Near bottom: Dropdown appears ABOVE input (flipped)</li>
+                <li class="test-pending">✓ Near top: Dropdown appears BELOW input (normal)</li>
+                <li class="test-pending">✓ Dropdown never gets cut off by viewport edges</li>
+                <li class="test-pending">✓ Flipped dropdown has "flipped" class applied</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>DevTools Check:</strong> When near bottom, inspect dropdown element and verify it has class "suggestions flipped"
+            </div>
+        </div>
+
+        <!-- AC #8: Box-Shadow Depth -->
+        <div class="test-section">
+            <h3>AC #8: Box-Shadow for Visual Depth</h3>
+            <p><strong>Requirement:</strong> Dropdown has subtle box-shadow for depth: 0 2px 8px rgba(0,0,0,0.15)</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Open dropdown</li>
+                <li>Right-click on dropdown container → Inspect</li>
+                <li>Check "Styles" or "Computed" tab in DevTools</li>
+                <li>Find box-shadow property</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Box-shadow exactly matches: 0 2px 8px rgba(0, 0, 0, 0.15)</li>
+                <li class="test-pending">✓ Shadow is visible and provides clear visual separation from page</li>
+                <li class="test-pending">✓ Shadow looks "elevated" above the page content</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>Expected CSS:</strong>
+                <pre class="measurement-display">
+box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px 0px
+(DevTools shows expanded format with 4 values)
+                </pre>
+            </div>
+        </div>
+
+        <!-- Performance Test -->
+        <div class="test-section">
+            <h3>Performance Test: Debounced Filtering (150ms)</h3>
+            <p><strong>Requirement:</strong> Filtering is debounced with 150ms delay to avoid excessive processing</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Load large GEDCOM file (1000+ individuals)</li>
+                <li>Type rapidly in Surname field: "SMITHSON"</li>
+                <li>Observe dropdown updates</li>
+            </ol>
+
+            <h5>Expected Results:</h5>
+            <ul>
+                <li class="test-pending">✓ Dropdown does NOT update after every keystroke</li>
+                <li class="test-pending">✓ Dropdown updates ~150ms after user stops typing</li>
+                <li class="test-pending">✓ No lag or performance issues during typing</li>
+                <li class="test-pending">✓ Final filtered results appear correctly</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>Performance Note:</strong> Debouncing improves performance by reducing filter calculations. With 150ms debounce, typing fast should result in fewer filter operations.
+            </div>
+        </div>
+
+        <!-- Cross-Browser Testing -->
+        <div class="test-section">
+            <h3>Cross-Browser Compatibility</h3>
+            <p><strong>Requirement:</strong> Consistent behavior across Chrome, Firefox, Safari, Edge</p>
+
+            <h5>Test Steps:</h5>
+            <ol>
+                <li>Open application in each browser</li>
+                <li>Run ACs #1-8 in each browser</li>
+                <li>Note any visual or functional differences</li>
+            </ol>
+
+            <h5>Browsers to Test:</h5>
+            <ul>
+                <li class="test-pending">✓ Chrome (latest version)</li>
+                <li class="test-pending">✓ Firefox (latest version)</li>
+                <li class="test-pending">✓ Safari (latest version)</li>
+                <li class="test-pending">✓ Edge (latest version)</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>Known Issues:</strong> Safari may render box-shadows slightly differently. This is acceptable as long as shadow is visible.
+            </div>
+        </div>
+
+        <!-- Integration Test -->
+        <div class="test-section">
+            <h3>Integration Test: All Fields with Autocomplete</h3>
+            <p><strong>Requirement:</strong> Autocomplete works on all name and place fields</p>
+
+            <h5>Fields to Test:</h5>
+            <ul>
+                <li class="test-pending">✓ Event Type field (event autocomplete)</li>
+                <li class="test-pending">✓ Place field (place autocomplete)</li>
+                <li class="test-pending">✓ Surname field (surname autocomplete)</li>
+                <li class="test-pending">✓ Given Name field (given name autocomplete)</li>
+                <li class="test-pending">✓ File Info field (info autocomplete)</li>
+                <li class="test-pending">✓ Additional People fields (if enabled)</li>
+            </ul>
+
+            <div class="alert alert-secondary">
+                <strong>Expected:</strong> All fields show dropdown with appropriate filtered suggestions. All ACs #1-8 should pass for each field.
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="test-section bg-light">
+            <h3>Test Summary</h3>
+            <p>Review all test sections above and mark acceptance criteria as passing or failing.</p>
+
+            <h5>Acceptance Criteria Results:</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>AC#</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Dropdown appears below input when typing</td>
+                            <td><span class="badge bg-warning">Pending Manual Test</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Bootstrap styling with borders, shadows, hovers</td>
+                            <td><span class="badge bg-warning">Pending Manual Test</span></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Maximum 10 suggestions shown</td>
+                            <td><span class="badge bg-warning">Pending Manual Test</span></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>44px minimum touch target size</td>
+                            <td><span class="badge bg-warning">Pending Manual Test</span></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>Immediate display on focus (0ms)</td>
+                            <td><span class="badge bg-warning">Pending Manual Test</span></td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>Disappears on blur/outside click</td>
+                            <td><span class="badge bg-warning">Pending Manual Test</span></td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td>Smart positioning (flip upward near edges)</td>
+                            <td><span class="badge bg-warning">Pending Manual Test</span></td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td>Box-shadow for depth perception</td>
+                            <td><span class="badge bg-warning">Pending Manual Test</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
