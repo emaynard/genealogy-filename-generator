@@ -12,23 +12,35 @@
             z-index: 1050;
             width: 100%;
             background: white;
-            border: 1px solid #ced4da;
+            border: 1px solid rgba(0, 0, 0, 0.15);
             border-radius: 0.375rem;
             margin-top: 2px;
-            max-height: 200px;
+            max-height: 440px; /* 10 items × 44px = 440px max */
             overflow-y: auto;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow for better depth */
+        }
+
+        /* Flipped position (above input) when near bottom of viewport */
+        .suggestions.flipped {
+            margin-top: 0;
+            margin-bottom: 2px;
+            bottom: 100%;
+            top: auto;
         }
 
         .suggestion-item {
-            padding: 0.5rem 0.75rem;
+            padding: 12px 16px; /* Updated: 12px vertical, 16px horizontal */
+            min-height: 44px; /* WCAG 2.5.5 touch target size */
             cursor: pointer;
             border-bottom: 1px solid #f8f9fa;
-            font-size: 0.875rem;
+            font-size: 14px; /* Clearer text size */
+            display: flex;
+            align-items: center;
+            transition: background-color 0.15s ease-in-out;
         }
 
         .suggestion-item:hover {
-            background-color: #e9ecef;
+            background-color: rgba(13, 110, 253, 0.1); /* Bootstrap primary with transparency */
         }
 
         .suggestion-item.active {
@@ -36,8 +48,15 @@
             color: white;
         }
 
+        .suggestion-item:first-child {
+            border-top-left-radius: 0.375rem;
+            border-top-right-radius: 0.375rem;
+        }
+
         .suggestion-item:last-child {
             border-bottom: none;
+            border-bottom-left-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
         }
 
         .command-pre {
@@ -1490,23 +1509,28 @@
         // Event listeners
         elements.eventType.addEventListener('input', handleEventTypeChange);
         elements.eventType.addEventListener('focus', () => filterEventSuggestions(elements.eventType.value));
+        elements.eventType.addEventListener('blur', () => hideSuggestionsWithDelay('event')); // Story 2.1: AC #6
         elements.eventType.addEventListener('keydown', (e) => handleKeyDown(e, 'event', EVENT_TYPES, selectEventSuggestion));
 
         elements.place.addEventListener('input', handlePlaceChange);
         elements.place.addEventListener('focus', () => filterPlaceSuggestions(elements.place.value));
+        elements.place.addEventListener('blur', () => hideSuggestionsWithDelay('place')); // Story 2.1: AC #6
         elements.place.addEventListener('keydown', (e) => handleKeyDown(e, 'place', gedcomPlaces, selectPlaceSuggestion));
         elements.placeFormat.addEventListener('change', handlePlaceFormatChange);
 
         elements.surname.addEventListener('input', handleSurnameChange);
         elements.surname.addEventListener('focus', () => filterSurnameSuggestions(elements.surname.value));
+        elements.surname.addEventListener('blur', () => hideSuggestionsWithDelay('surname')); // Story 2.1: AC #6
         elements.surname.addEventListener('keydown', (e) => handleKeyDown(e, 'surname', [], selectSurnameSuggestion));
 
         elements.givenName.addEventListener('input', handleGivenNameChange);
         elements.givenName.addEventListener('focus', () => filterGivenNameSuggestions(elements.givenName.value));
+        elements.givenName.addEventListener('blur', () => hideSuggestionsWithDelay('givenName')); // Story 2.1: AC #6
         elements.givenName.addEventListener('keydown', (e) => handleKeyDown(e, 'givenName', [], selectGivenNameSuggestion));
 
         elements.fileInfo.addEventListener('input', handleFileInfoChange);
         elements.fileInfo.addEventListener('focus', () => filterInfoSuggestions(elements.fileInfo.value));
+        elements.fileInfo.addEventListener('blur', () => hideSuggestionsWithDelay('fileInfo')); // Story 2.1: AC #6
         elements.fileInfo.addEventListener('keydown', (e) => handleKeyDown(e, 'fileInfo', INFO_TYPES, selectInfoSuggestion));
 
         // Legacy date element removed - now using genealogyDate and preciseDate event listeners
@@ -1548,14 +1572,35 @@
             }
         });
 
+        // Story 2.1: Debounced filter functions (150ms delay to avoid excessive processing)
+        const debouncedFilterEvent = debounce(function(value) {
+            filterEventSuggestions(value);
+        }, 150);
+
+        const debouncedFilterPlace = debounce(function(value) {
+            filterPlaceSuggestions(value);
+        }, 150);
+
+        const debouncedFilterSurname = debounce(function(value) {
+            filterSurnameSuggestions(value);
+        }, 150);
+
+        const debouncedFilterGivenName = debounce(function(value) {
+            filterGivenNameSuggestions(value);
+        }, 150);
+
+        const debouncedFilterFileInfo = debounce(function(value) {
+            filterInfoSuggestions(value);
+        }, 150);
+
         // Input handlers
         function handleEventTypeChange(e) {
-            filterEventSuggestions(e.target.value);
+            debouncedFilterEvent(e.target.value);
             generateFilename();
         }
 
         function handlePlaceChange(e) {
-            filterPlaceSuggestions(e.target.value);
+            debouncedFilterPlace(e.target.value);
             generateFilename();
         }
 
@@ -1574,19 +1619,19 @@
         }
 
         function handleSurnameChange(e) {
-            filterSurnameSuggestions(e.target.value);
+            debouncedFilterSurname(e.target.value);
             // Don't clear given name and middle name when typing in surname
             // This allows users to mix manual typing with dropdown selections
             generateFilename();
         }
 
         function handleGivenNameChange(e) {
-            filterGivenNameSuggestions(e.target.value);
+            debouncedFilterGivenName(e.target.value);
             generateFilename();
         }
 
         function handleFileInfoChange(e) {
-            filterInfoSuggestions(e.target.value);
+            debouncedFilterFileInfo(e.target.value);
             generateFilename();
         }
 
@@ -2060,25 +2105,99 @@
         function showSuggestions(type, suggestionList) {
             const container = suggestions[type];
             if (!container) return;
-            
+
+            // Story 2.1: AC #6 - Cancel any pending hide timeout when showing dropdown
+            cancelHideTimeout();
+
             container.innerHTML = '';
-            
+
             if (suggestionList.length === 0) {
                 container.classList.add('hidden');
                 return;
             }
-            
-            suggestionList.forEach((suggestion, index) => {
+
+            // Story 2.1: Limit to maximum 10 suggestions to prevent overwhelming UI
+            const limitedList = suggestionList.slice(0, 10);
+
+            limitedList.forEach((suggestion, index) => {
                 const item = document.createElement('div');
                 item.className = 'suggestion-item';
                 item.textContent = suggestion;
                 item.addEventListener('click', () => {
+                    // Story 2.1: AC #6 - Cancel hide timeout to ensure click completes
+                    cancelHideTimeout();
                     selectSuggestion(type, suggestion);
                 });
                 container.appendChild(item);
             });
-            
+
             container.classList.remove('hidden');
+
+            // Story 2.1: Smart positioning - flip upward if near bottom of viewport
+            positionSuggestionsDropdown(container, type);
+        }
+
+        // Story 2.1: Smart positioning function to flip dropdown upward if needed
+        function positionSuggestionsDropdown(container, type) {
+            // Get the input element associated with this suggestion container
+            const inputElement = getInputElementForSuggestionType(type);
+            if (!inputElement) return;
+
+            const inputRect = inputElement.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const spaceBelow = viewportHeight - inputRect.bottom;
+            const spaceAbove = inputRect.top;
+            const dropdownMaxHeight = 440; // Max height for 10 items × 44px
+
+            // Flip upward if insufficient space below and more space above
+            if (spaceBelow < dropdownMaxHeight && spaceAbove > spaceBelow) {
+                container.classList.add('flipped');
+            } else {
+                container.classList.remove('flipped');
+            }
+        }
+
+        // Story 2.1: Helper to get input element for a suggestion type
+        function getInputElementForSuggestionType(type) {
+            switch(type) {
+                case 'event': return elements.eventType;
+                case 'place': return elements.place;
+                case 'surname': return elements.surname;
+                case 'givenName': return elements.givenName;
+                case 'fileInfo': return elements.fileInfo;
+                case 'surname2': return document.getElementById('additionalSurname');
+                case 'givenName2': return document.getElementById('additionalGivenName');
+                case 'surname3': return document.getElementById('additionalSurname2');
+                case 'givenName3': return document.getElementById('additionalGivenName2');
+                default: return null;
+            }
+        }
+
+        // Story 2.1: Hide suggestions with delay to allow click selection
+        // AC #6: Dropdown disappears on blur with 200ms delay
+        let blurTimeoutId = null;
+
+        function hideSuggestionsWithDelay(type) {
+            // Clear any existing timeout
+            if (blurTimeoutId) {
+                clearTimeout(blurTimeoutId);
+            }
+
+            // Hide after 200ms delay to allow click on suggestion
+            blurTimeoutId = setTimeout(() => {
+                const container = suggestions[type];
+                if (container) {
+                    container.classList.add('hidden');
+                }
+            }, 200);
+        }
+
+        // Story 2.1: Cancel hide timeout (called when clicking on suggestion)
+        function cancelHideTimeout() {
+            if (blurTimeoutId) {
+                clearTimeout(blurTimeoutId);
+                blurTimeoutId = null;
+            }
         }
 
         // Selection functions
