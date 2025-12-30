@@ -43,6 +43,21 @@
             background-color: rgba(13, 110, 253, 0.1); /* Bootstrap primary with transparency */
         }
 
+        /* Story 2.2: Highlighted state for keyboard navigation */
+        .suggestion-item.highlighted {
+            background-color: rgba(13, 110, 253, 0.15); /* Bootstrap primary with 15% opacity */
+            border-left: 3px solid #0d6efd; /* Bootstrap primary color */
+            padding-left: 13px; /* Adjust for 3px border (16px - 3px = 13px) */
+            outline: 2px solid #0d6efd; /* Focus ring for keyboard users */
+            outline-offset: -2px;
+            transition: background-color 0.15s ease-in-out, border-left 0.15s ease-in-out;
+        }
+
+        /* Ensure highlighted item is distinguishable from hover */
+        .suggestion-item.highlighted:hover {
+            background-color: rgba(13, 110, 253, 0.25); /* Slightly darker when both highlighted and hovered */
+        }
+
         .suggestion-item.active {
             background-color: #0d6efd;
             color: white;
@@ -1122,7 +1137,20 @@
         let gedcomPlaces = [];
         let keywords = [];
         let activeDropdown = null;
-        let activeIndex = -1;
+
+        // Story 2.2: State management for keyboard navigation (per-field tracking)
+        const suggestionSelectedIndex = {
+            event: -1,
+            place: -1,
+            surname: -1,
+            givenName: -1,
+            fileInfo: -1,
+            surname2: -1,
+            givenName2: -1,
+            surname3: -1,
+            givenName3: -1
+        };
+
         let additionalPeople = [];
         let personIdCounter = 1;
 
@@ -1595,11 +1623,15 @@
 
         // Input handlers
         function handleEventTypeChange(e) {
+            // Story 2.2: Reset selection when user types (AC #9)
+            suggestionSelectedIndex['event'] = -1;
             debouncedFilterEvent(e.target.value);
             generateFilename();
         }
 
         function handlePlaceChange(e) {
+            // Story 2.2: Reset selection when user types (AC #9)
+            suggestionSelectedIndex['place'] = -1;
             debouncedFilterPlace(e.target.value);
             generateFilename();
         }
@@ -1619,6 +1651,8 @@
         }
 
         function handleSurnameChange(e) {
+            // Story 2.2: Reset selection when user types (AC #9)
+            suggestionSelectedIndex['surname'] = -1;
             debouncedFilterSurname(e.target.value);
             // Don't clear given name and middle name when typing in surname
             // This allows users to mix manual typing with dropdown selections
@@ -1626,11 +1660,15 @@
         }
 
         function handleGivenNameChange(e) {
+            // Story 2.2: Reset selection when user types (AC #9)
+            suggestionSelectedIndex['givenName'] = -1;
             debouncedFilterGivenName(e.target.value);
             generateFilename();
         }
 
         function handleFileInfoChange(e) {
+            // Story 2.2: Reset selection when user types (AC #9)
+            suggestionSelectedIndex['fileInfo'] = -1;
             debouncedFilterFileInfo(e.target.value);
             generateFilename();
         }
@@ -2109,6 +2147,9 @@
             // Story 2.1: AC #6 - Cancel any pending hide timeout when showing dropdown
             cancelHideTimeout();
 
+            // Story 2.2: Reset selectedIndex when showing dropdown (AC #1-9)
+            suggestionSelectedIndex[type] = -1;
+
             container.innerHTML = '';
 
             if (suggestionList.length === 0) {
@@ -2350,49 +2391,60 @@
             generateFilename();
         }
 
-        // Keyboard navigation
+        // Story 2.2: Keyboard navigation with per-field state tracking
         function handleKeyDown(e, dropdownName, suggestionList, selectFunction) {
             const container = suggestions[dropdownName];
             if (!container || container.classList.contains('hidden')) return;
-            
+
             const items = container.querySelectorAll('.suggestion-item');
             if (items.length === 0) return;
-            
+
             switch (e.key) {
                 case 'ArrowDown':
-                    e.preventDefault();
-                    activeIndex = activeIndex < items.length - 1 ? activeIndex + 1 : 0;
-                    updateActiveItem(items);
+                    e.preventDefault(); // Prevent default scroll behavior
+                    // Story 2.2: Circular navigation - wrap to first when on last item
+                    suggestionSelectedIndex[dropdownName] =
+                        (suggestionSelectedIndex[dropdownName] + 1) % items.length;
+                    updateActiveItem(dropdownName, items);
                     break;
-                    
+
                 case 'ArrowUp':
-                    e.preventDefault();
-                    activeIndex = activeIndex > 0 ? activeIndex - 1 : items.length - 1;
-                    updateActiveItem(items);
+                    e.preventDefault(); // Prevent default scroll behavior
+                    // Story 2.2: Circular navigation - wrap to last when on first item
+                    suggestionSelectedIndex[dropdownName] =
+                        (suggestionSelectedIndex[dropdownName] - 1 + items.length) % items.length;
+                    updateActiveItem(dropdownName, items);
                     break;
-                    
+
                 case 'Enter':
                     e.preventDefault();
-                    if (activeIndex >= 0 && activeIndex < items.length) {
-                        selectFunction(items[activeIndex].textContent);
-                        activeIndex = -1;
+                    if (suggestionSelectedIndex[dropdownName] >= 0 &&
+                        suggestionSelectedIndex[dropdownName] < items.length) {
+                        selectFunction(items[suggestionSelectedIndex[dropdownName]].textContent);
+                        suggestionSelectedIndex[dropdownName] = -1;
                     }
                     break;
-                    
+
                 case 'Escape':
                     e.preventDefault();
                     container.classList.add('hidden');
-                    activeIndex = -1;
+                    suggestionSelectedIndex[dropdownName] = -1;
                     break;
             }
         }
 
-        function updateActiveItem(items) {
+        // Story 2.2: Update highlighted item with scroll-into-view behavior
+        function updateActiveItem(dropdownName, items) {
             items.forEach((item, index) => {
-                if (index === activeIndex) {
-                    item.classList.add('active');
+                if (index === suggestionSelectedIndex[dropdownName]) {
+                    // Story 2.2: Use .highlighted class (AC #6)
+                    item.classList.add('highlighted');
+                    item.classList.remove('active'); // Remove legacy class
+                    // Story 2.2: Scroll into view (AC #7)
+                    item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
                 } else {
-                    item.classList.remove('active');
+                    item.classList.remove('highlighted');
+                    item.classList.remove('active'); // Remove legacy class
                 }
             });
         }
