@@ -44,14 +44,16 @@ Following the customizable pattern:
 [Type]_[PLACE]_[DATE]_[NAME]_[info].ext
 
 Where:
-  DATE = Your custom date sub-template (e.g., {YYYY}.{MM}.{DD} or {DD}-{MM}-{YYYY})
-  PLACE = Your custom place sub-template (e.g., {CITY}, {STATE} or {COUNTRY}.{STATE}.{CITY})
-  NAME = Your custom name sub-template (e.g., {SURNAME:upper}.{GIVEN} or {GIVEN} {SURNAME})
+  [Type] = Free text with auto-suggestions pulled from GEDCOM source Event types
+  [DATE] = Your custom date sub-template (e.g., {YYYY}.{MM}.{DD} or {DD}-{MM}-{YYYY})
+  [PLACE] = Your custom place sub-template (e.g., {CITY}, {STATE} or {COUNTRY}.{STATE}.{CITY})
+  [NAME] = Your custom name sub-template (e.g., {SURNAME:upper}.{GIVEN} or {GIVEN} {SURNAME})
+  [info] = Free text (non-delimited)
 ```
 
 ## Quick Start
 
-### GitHub Pages (Easiest)
+### GitHub Pages Hosted (Easiest)
 
 1. Visit the [Genealogy Filename Generator](https://emaynard.github.io/genealogy-filename-generator/) hosted version
 2. (Optional) Upload your GEDCOM file for intelligent autocomplete suggestions
@@ -83,7 +85,7 @@ Internet Explorer is not supported (requires ES6+).
 
 ### 🎨 Sub-template Formatting System
 
-Version 2.0 introduces a revolutionary **composable sub-template architecture** that gives you complete control over filename formatting:
+Version 2.0 introduces a **composable sub-template architecture** that gives you complete control over filename formatting:
 
 #### DATE Sub-template
 Customize how dates appear using placeholders:
