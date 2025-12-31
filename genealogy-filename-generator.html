@@ -1891,7 +1891,9 @@
                 item.className = 'suggestion-item';
                 item.textContent = suggestion;
                 item.setAttribute('data-index', index);
-                item.addEventListener('click', () => {
+                item.addEventListener('click', (event) => {
+                    // Story 2.4: AC #7 - Prevent click event from bubbling to parent elements
+                    event.stopPropagation();
                     onSelect(suggestion);
                 });
                 container.appendChild(item);
@@ -2169,7 +2171,9 @@
                 const item = document.createElement('div');
                 item.className = 'suggestion-item';
                 item.textContent = suggestion;
-                item.addEventListener('click', () => {
+                item.addEventListener('click', (event) => {
+                    // Story 2.4: AC #7 - Prevent click event from bubbling to parent elements
+                    event.stopPropagation();
                     // Story 2.1: AC #6 - Cancel hide timeout to ensure click completes
                     cancelHideTimeout();
                     selectSuggestion(type, suggestion);
