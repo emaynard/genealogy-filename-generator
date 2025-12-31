@@ -1937,6 +1937,9 @@
                             selectDynamicGivenNameChoice(inputElement, personId, selectedText);
                         }
                     }
+                    // Story 2.3: Close dropdown and reset selection even when no item highlighted (AC #7, Test 8)
+                    suggestionContainer.classList.add('hidden');
+                    updateDynamicActiveItem(items, -1);
                     break;
                     
                 case 'Escape':
@@ -1966,7 +1969,7 @@
         function selectDynamicSurnameChoice(inputElement, personId, selectedText) {
             inputElement.value = selectedText;
             updatePersonData(personId, 'surname', selectedText);
-            
+
             // Clear other fields when surname changes
             const personRow = inputElement.closest('[data-person-id]');
             const givenInput = personRow.querySelector('.person-given');
@@ -1975,45 +1978,47 @@
             middleInput.value = '';
             updatePersonData(personId, 'givenName', '');
             updatePersonData(personId, 'middleName', '');
-            
+
             // Hide suggestions
             const suggestionContainer = inputElement.parentElement.querySelector('.person-suggestions');
             suggestionContainer.classList.add('hidden');
+            inputElement.focus(); // Story 2.3: Maintain focus after selection (AC #3)
         }
 
         function selectDynamicGivenNameChoice(inputElement, personId, selectedText) {
             const person = additionalPeople.find(p => p.id === personId);
             const surname = person ? person.surname : '';
-            
+
             const nameParts = selectedText.trim().split(/\s+/);
             if (nameParts.length > 1) {
                 inputElement.value = nameParts[0];
                 updatePersonData(personId, 'givenName', nameParts[0]);
-                
+
                 const middleInput = inputElement.closest('[data-person-id]').querySelector('.person-middle');
                 middleInput.value = nameParts.slice(1).join(' ');
                 updatePersonData(personId, 'middleName', nameParts.slice(1).join(' '));
             } else {
                 inputElement.value = selectedText;
                 updatePersonData(personId, 'givenName', selectedText);
-                
+
                 // Try to find matching individual for middle name
                 const matchingIndividual = gedcomIndividuals.find(
-                    individual => 
-                        individual.name.surname === surname && 
+                    individual =>
+                        individual.name.surname === surname &&
                         individual.name.given === selectedText
                 );
-                
+
                 if (matchingIndividual && matchingIndividual.name.middle) {
                     const middleInput = inputElement.closest('[data-person-id]').querySelector('.person-middle');
                     middleInput.value = matchingIndividual.name.middle;
                     updatePersonData(personId, 'middleName', matchingIndividual.name.middle);
                 }
             }
-            
+
             // Hide suggestions
             const suggestionContainer = inputElement.parentElement.querySelector('.person-suggestions');
             suggestionContainer.classList.add('hidden');
+            inputElement.focus(); // Story 2.3: Maintain focus after selection (AC #3)
         }
 
         function toggleThirdPersonSection() {
@@ -2277,18 +2282,21 @@
         function selectEventSuggestion(suggestion) {
             elements.eventType.value = suggestion;
             suggestions.event.classList.add('hidden');
+            elements.eventType.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             generateFilename();
         }
 
         function selectPlaceSuggestion(suggestion) {
             elements.place.value = suggestion;
             suggestions.place.classList.add('hidden');
+            elements.place.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             generateFilename();
         }
 
         function selectSurnameSuggestion(suggestion) {
             elements.surname.value = suggestion;
             suggestions.surname.classList.add('hidden');
+            elements.surname.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             // Don't clear given name and middle name - allow mixed manual/dropdown entry
             // Only clear if the fields are empty to avoid overwriting user input
             if (!elements.givenName.value && !elements.middleName.value) {
@@ -2304,25 +2312,27 @@
                 elements.middleName.value = nameParts.slice(1).join(' ');
             } else {
                 elements.givenName.value = suggestion;
-                
+
                 // Try to find matching individual for middle name
                 const matchingIndividual = gedcomIndividuals.find(
-                    individual => 
-                        individual.name.surname === elements.surname.value && 
+                    individual =>
+                        individual.name.surname === elements.surname.value &&
                         individual.name.given === suggestion
                 );
-                
+
                 if (matchingIndividual && matchingIndividual.name.middle) {
                     elements.middleName.value = matchingIndividual.name.middle;
                 }
             }
             suggestions.givenName.classList.add('hidden');
+            elements.givenName.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             generateFilename();
         }
 
         function selectInfoSuggestion(suggestion) {
             elements.fileInfo.value = suggestion;
             suggestions.fileInfo.classList.add('hidden');
+            elements.fileInfo.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             generateFilename();
         }
 
@@ -2330,6 +2340,7 @@
         function selectSurname2Suggestion(suggestion) {
             elements.surname2.value = suggestion;
             suggestions.surname2.classList.add('hidden');
+            elements.surname2.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             elements.givenName2.value = '';
             elements.middleName2.value = '';
             filterGivenName2Suggestions('');
@@ -2343,25 +2354,27 @@
                 elements.middleName2.value = nameParts.slice(1).join(' ');
             } else {
                 elements.givenName2.value = suggestion;
-                
+
                 // Try to find matching individual for middle name
                 const matchingIndividual = gedcomIndividuals.find(
-                    individual => 
-                        individual.name.surname === elements.surname2.value && 
+                    individual =>
+                        individual.name.surname === elements.surname2.value &&
                         individual.name.given === suggestion
                 );
-                
+
                 if (matchingIndividual && matchingIndividual.name.middle) {
                     elements.middleName2.value = matchingIndividual.name.middle;
                 }
             }
             suggestions.givenName2.classList.add('hidden');
+            elements.givenName2.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             generateFilename();
         }
 
         function selectSurname3Suggestion(suggestion) {
             elements.surname3.value = suggestion;
             suggestions.surname3.classList.add('hidden');
+            elements.surname3.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             elements.givenName3.value = '';
             elements.middleName3.value = '';
             filterGivenName3Suggestions('');
@@ -2375,19 +2388,20 @@
                 elements.middleName3.value = nameParts.slice(1).join(' ');
             } else {
                 elements.givenName3.value = suggestion;
-                
+
                 // Try to find matching individual for middle name
                 const matchingIndividual = gedcomIndividuals.find(
-                    individual => 
-                        individual.name.surname === elements.surname3.value && 
+                    individual =>
+                        individual.name.surname === elements.surname3.value &&
                         individual.name.given === suggestion
                 );
-                
+
                 if (matchingIndividual && matchingIndividual.name.middle) {
                     elements.middleName3.value = matchingIndividual.name.middle;
                 }
             }
             suggestions.givenName3.classList.add('hidden');
+            elements.givenName3.focus(); // Story 2.3: Maintain focus after selection (AC #3)
             generateFilename();
         }
 
@@ -2421,8 +2435,10 @@
                     if (suggestionSelectedIndex[dropdownName] >= 0 &&
                         suggestionSelectedIndex[dropdownName] < items.length) {
                         selectFunction(items[suggestionSelectedIndex[dropdownName]].textContent);
-                        suggestionSelectedIndex[dropdownName] = -1;
                     }
+                    // Story 2.3: Close dropdown and reset selection even when no item highlighted (AC #7, Test 8)
+                    container.classList.add('hidden');
+                    suggestionSelectedIndex[dropdownName] = -1;
                     break;
 
                 case 'Escape':
