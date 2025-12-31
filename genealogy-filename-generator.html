@@ -1931,7 +1931,21 @@
         // Keyboard navigation for dynamic suggestions
         function handleDynamicKeyDown(e, inputElement, personId, fieldType) {
             const suggestionContainer = inputElement.parentElement.querySelector('.person-suggestions');
-            if (!suggestionContainer || suggestionContainer.classList.contains('hidden')) return;
+            if (!suggestionContainer) return;
+
+            // Story 2.5: AC #6 - Allow ArrowDown to reopen closed dropdown
+            if (suggestionContainer.classList.contains('hidden') && e.key === 'ArrowDown') {
+                e.preventDefault();
+                // Reopen dropdown with current filter
+                if (fieldType === 'surname') {
+                    filterDynamicSurnameSuggestions(inputElement, personId);
+                } else if (fieldType === 'givenName') {
+                    filterDynamicGivenNameSuggestions(inputElement, personId);
+                }
+                return;
+            }
+
+            if (suggestionContainer.classList.contains('hidden')) return;
             
             const items = suggestionContainer.querySelectorAll('.suggestion-item');
             if (items.length === 0) return;
@@ -1971,7 +1985,9 @@
                     break;
                     
                 case 'Escape':
+                    // Story 2.5: AC #1, #4 - Close dropdown and reset selection
                     e.preventDefault();
+                    e.stopPropagation(); // Prevent closing modals/dialogs
                     suggestionContainer.classList.add('hidden');
                     updateDynamicActiveItem(items, -1);
                     break;
@@ -2477,10 +2493,72 @@
             generateFilename();
         }
 
+        // Story 2.5: Helper to get input element from dropdown name
+        function getInputElementForDropdown(dropdownName) {
+            const mapping = {
+                'event': elements.eventType,
+                'place': elements.place,
+                'surname': elements.surname,
+                'givenName': elements.givenName,
+                'fileInfo': elements.fileInfo,
+                'surname2': elements.surname2,
+                'givenName2': elements.givenName2,
+                'surname3': elements.surname3,
+                'givenName3': elements.givenName3
+            };
+            return mapping[dropdownName];
+        }
+
+        // Story 2.5: Helper to trigger filter for dropdown
+        function triggerFilter(dropdownName, value) {
+            switch(dropdownName) {
+                case 'event':
+                    filterEventSuggestions(value);
+                    break;
+                case 'place':
+                    filterPlaceSuggestions(value);
+                    break;
+                case 'surname':
+                    filterSurnameSuggestions(value);
+                    break;
+                case 'givenName':
+                    filterGivenNameSuggestions(value);
+                    break;
+                case 'fileInfo':
+                    filterInfoSuggestions(value);
+                    break;
+                case 'surname2':
+                    filterSurname2Suggestions(value);
+                    break;
+                case 'givenName2':
+                    filterGivenName2Suggestions(value);
+                    break;
+                case 'surname3':
+                    filterSurname3Suggestions(value);
+                    break;
+                case 'givenName3':
+                    filterGivenName3Suggestions(value);
+                    break;
+            }
+        }
+
         // Story 2.2: Keyboard navigation with per-field state tracking
         function handleKeyDown(e, dropdownName, suggestionList, selectFunction) {
             const container = suggestions[dropdownName];
-            if (!container || container.classList.contains('hidden')) return;
+            if (!container) return;
+
+            // Story 2.5: AC #6 - Allow ArrowDown to reopen closed dropdown
+            if (container.classList.contains('hidden') && e.key === 'ArrowDown') {
+                e.preventDefault();
+                // Reopen dropdown with current filter
+                const inputElement = getInputElementForDropdown(dropdownName);
+                if (inputElement) {
+                    triggerFilter(dropdownName, inputElement.value);
+                }
+                return;
+            }
+
+            if (container.classList.contains('hidden')) return;
 
             const items = container.querySelectorAll('.suggestion-item');
             if (items.length === 0) return;
@@ -2514,7 +2592,9 @@
                     break;
 
                 case 'Escape':
+                    // Story 2.5: AC #1, #4 - Close dropdown and reset selection
                     e.preventDefault();
+                    e.stopPropagation(); // Prevent closing modals/dialogs
                     container.classList.add('hidden');
                     suggestionSelectedIndex[dropdownName] = -1;
                     break;
