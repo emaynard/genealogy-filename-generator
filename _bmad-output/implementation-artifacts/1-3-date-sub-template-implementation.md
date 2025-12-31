@@ -1,6 +1,6 @@
 # Story 1.3: Date Sub-template Implementation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -269,6 +269,33 @@ No code changes were required. Only documentation updates (this file and test fi
 - All acceptance criteria validated programmatically
 - Critical bug (HIGH #1) verified fixed via Test 9
 - Manual test suite (test-story-1-3.html) still available for UI testing
+
+**2025-12-31 - CRITICAL User-Reported Bug Fix**
+
+**Bug Report:** User reported that Test #6 subtests all failed - when date input has 'x' for unknown components (e.g., "2024-03-x") and template uses padded placeholders ({MM} or {DD}), only single 'x' appeared instead of 'xx'.
+
+**Root Cause:**
+In `processSubTemplate()` (genealogy-filename-generator.html:3738-3741), when value was null/undefined/empty, it returned missingValueHandler ('x') BEFORE the padding logic executed. This meant padded placeholders ({MM}, {DD}, {YY}) never got a chance to apply 'xx' padding to missing values.
+
+**Fix Applied:** (genealogy-filename-generator.html:3738-3764)
+1. Changed early return to value assignment: `value = missingValueHandler` instead of `return missingValueHandler`
+2. Added explicit 'x' padding logic for double-letter placeholders:
+   - {MM} or {DD} with value='x' → 'xx'
+   - {YY} with value='x' → 'xx'
+   - {M}, {D}, {YYYY} with value='x' → 'x' (unchanged, single-letter or quad-letter placeholders)
+
+**New Tests Added:** (genealogy-filename-generator.html:6775-6858)
+- Test 13: "2024-x-15" with {YYYY}.{MM}.{DD} → "2024.xx.15" (unknown month)
+- Test 14: "2024-x-x" with {YYYY}.{MM}.{DD} → "2024.xx.xx" (unknown month & day)
+- Test 15: "2024-03-x" with {DD}-{MM}-{YYYY} → "xx-03-2024" (unknown day, different format)
+- Test 16: "2024-03-x" with {M}/{D}/{YY} → "3/x/24" (verify single-letter still gets single x)
+- Updated: Test suite now has 18 total tests (was 14)
+
+**Verification:**
+- AC #6 now fully satisfied: Partial dates use 'x' with proper padding
+- Test 10: "2024-03-x" → "2024.03.xx" ✓
+- Test 12: "Abt 2024" → "2024.xx.xx" ✓
+- All user-reported failure cases now pass
 
 ---
 
