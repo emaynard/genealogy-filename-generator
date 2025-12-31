@@ -1937,6 +1937,9 @@
                             selectDynamicGivenNameChoice(inputElement, personId, selectedText);
                         }
                     }
+                    // Story 2.3: Close dropdown and reset selection even when no item highlighted (AC #7, Test 8)
+                    suggestionContainer.classList.add('hidden');
+                    updateDynamicActiveItem(items, -1);
                     break;
                     
                 case 'Escape':
@@ -2432,8 +2435,10 @@
                     if (suggestionSelectedIndex[dropdownName] >= 0 &&
                         suggestionSelectedIndex[dropdownName] < items.length) {
                         selectFunction(items[suggestionSelectedIndex[dropdownName]].textContent);
-                        suggestionSelectedIndex[dropdownName] = -1;
                     }
+                    // Story 2.3: Close dropdown and reset selection even when no item highlighted (AC #7, Test 8)
+                    container.classList.add('hidden');
+                    suggestionSelectedIndex[dropdownName] = -1;
                     break;
 
                 case 'Escape':
