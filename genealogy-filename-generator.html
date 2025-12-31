@@ -1282,6 +1282,9 @@
             givenName3: document.getElementById('givenName3Suggestions')
         };
 
+        // Story 2.4: Flag to suppress focus listeners after selection (AC #2)
+        let suppressFocusFilter = false;
+
         // Settings toggle handler
         elements.toggleSettings.addEventListener('click', function() {
             // Hide Output card, show Settings card
@@ -1536,28 +1539,38 @@
 
         // Event listeners
         elements.eventType.addEventListener('input', handleEventTypeChange);
-        elements.eventType.addEventListener('focus', () => filterEventSuggestions(elements.eventType.value));
+        elements.eventType.addEventListener('focus', () => {
+            if (!suppressFocusFilter) filterEventSuggestions(elements.eventType.value);
+        });
         elements.eventType.addEventListener('blur', () => hideSuggestionsWithDelay('event')); // Story 2.1: AC #6
         elements.eventType.addEventListener('keydown', (e) => handleKeyDown(e, 'event', EVENT_TYPES, selectEventSuggestion));
 
         elements.place.addEventListener('input', handlePlaceChange);
-        elements.place.addEventListener('focus', () => filterPlaceSuggestions(elements.place.value));
+        elements.place.addEventListener('focus', () => {
+            if (!suppressFocusFilter) filterPlaceSuggestions(elements.place.value);
+        });
         elements.place.addEventListener('blur', () => hideSuggestionsWithDelay('place')); // Story 2.1: AC #6
         elements.place.addEventListener('keydown', (e) => handleKeyDown(e, 'place', gedcomPlaces, selectPlaceSuggestion));
         elements.placeFormat.addEventListener('change', handlePlaceFormatChange);
 
         elements.surname.addEventListener('input', handleSurnameChange);
-        elements.surname.addEventListener('focus', () => filterSurnameSuggestions(elements.surname.value));
+        elements.surname.addEventListener('focus', () => {
+            if (!suppressFocusFilter) filterSurnameSuggestions(elements.surname.value);
+        });
         elements.surname.addEventListener('blur', () => hideSuggestionsWithDelay('surname')); // Story 2.1: AC #6
         elements.surname.addEventListener('keydown', (e) => handleKeyDown(e, 'surname', [], selectSurnameSuggestion));
 
         elements.givenName.addEventListener('input', handleGivenNameChange);
-        elements.givenName.addEventListener('focus', () => filterGivenNameSuggestions(elements.givenName.value));
+        elements.givenName.addEventListener('focus', () => {
+            if (!suppressFocusFilter) filterGivenNameSuggestions(elements.givenName.value);
+        });
         elements.givenName.addEventListener('blur', () => hideSuggestionsWithDelay('givenName')); // Story 2.1: AC #6
         elements.givenName.addEventListener('keydown', (e) => handleKeyDown(e, 'givenName', [], selectGivenNameSuggestion));
 
         elements.fileInfo.addEventListener('input', handleFileInfoChange);
-        elements.fileInfo.addEventListener('focus', () => filterInfoSuggestions(elements.fileInfo.value));
+        elements.fileInfo.addEventListener('focus', () => {
+            if (!suppressFocusFilter) filterInfoSuggestions(elements.fileInfo.value);
+        });
         elements.fileInfo.addEventListener('blur', () => hideSuggestionsWithDelay('fileInfo')); // Story 2.1: AC #6
         elements.fileInfo.addEventListener('keydown', (e) => handleKeyDown(e, 'fileInfo', INFO_TYPES, selectInfoSuggestion));
 
@@ -1816,20 +1829,36 @@
             surnameInput.addEventListener('keydown', (e) => {
                 handleDynamicKeyDown(e, surnameInput, personId, 'surname');
             });
-            
+
+            surnameInput.addEventListener('blur', () => {
+                const suggestionContainer = surnameInput.parentElement.querySelector('.person-suggestions');
+                if (dynamicBlurTimeoutId) {
+                    clearTimeout(dynamicBlurTimeoutId);
+                }
+                dynamicBlurTimeoutId = setTimeout(() => suggestionContainer.classList.add('hidden'), 200);
+            });
+
             givenInput.addEventListener('input', (e) => {
                 updatePersonData(personId, 'givenName', e.target.value);
                 filterDynamicGivenNameSuggestions(e.target, personId);
             });
-            
+
             givenInput.addEventListener('focus', () => {
                 filterDynamicGivenNameSuggestions(givenInput, personId);
             });
-            
+
             givenInput.addEventListener('keydown', (e) => {
                 handleDynamicKeyDown(e, givenInput, personId, 'givenName');
             });
-            
+
+            givenInput.addEventListener('blur', () => {
+                const suggestionContainer = givenInput.parentElement.querySelector('.person-suggestions');
+                if (dynamicBlurTimeoutId) {
+                    clearTimeout(dynamicBlurTimeoutId);
+                }
+                dynamicBlurTimeoutId = setTimeout(() => suggestionContainer.classList.add('hidden'), 200);
+            });
+
             middleInput.addEventListener('input', (e) => {
                 updatePersonData(personId, 'middleName', e.target.value);
             });
@@ -1887,15 +1916,12 @@
             }
             
             suggestionList.forEach((suggestion, index) => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                item.textContent = suggestion;
-                item.setAttribute('data-index', index);
-                item.addEventListener('click', (event) => {
-                    // Story 2.4: AC #7 - Prevent click event from bubbling to parent elements
-                    event.stopPropagation();
+                const item = renderSuggestionItem(suggestion, () => {
+                    // Cancel any pending hide timeout to prevent race condition
+                    cancelDynamicHideTimeout();
                     onSelect(suggestion);
                 });
+                item.setAttribute('data-index', index);
                 container.appendChild(item);
             });
             
@@ -2146,6 +2172,18 @@
             showSuggestions('givenName3', givenNames);
         }
 
+        // Helper function to create suggestion item elements
+        function renderSuggestionItem(suggestion, onClick) {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.textContent = suggestion;
+            item.addEventListener('click', (event) => {
+                event.stopPropagation();
+                onClick(event);
+            });
+            return item;
+        }
+
         // Show suggestions
         function showSuggestions(type, suggestionList) {
             const container = suggestions[type];
@@ -2168,12 +2206,7 @@
             const limitedList = suggestionList.slice(0, 10);
 
             limitedList.forEach((suggestion, index) => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                item.textContent = suggestion;
-                item.addEventListener('click', (event) => {
-                    // Story 2.4: AC #7 - Prevent click event from bubbling to parent elements
-                    event.stopPropagation();
+                const item = renderSuggestionItem(suggestion, () => {
                     // Story 2.1: AC #6 - Cancel hide timeout to ensure click completes
                     cancelHideTimeout();
                     selectSuggestion(type, suggestion);
@@ -2226,6 +2259,7 @@
         // Story 2.1: Hide suggestions with delay to allow click selection
         // AC #6: Dropdown disappears on blur with 200ms delay
         let blurTimeoutId = null;
+        let dynamicBlurTimeoutId = null;
 
         function hideSuggestionsWithDelay(type) {
             // Clear any existing timeout
@@ -2247,6 +2281,13 @@
             if (blurTimeoutId) {
                 clearTimeout(blurTimeoutId);
                 blurTimeoutId = null;
+            }
+        }
+
+        function cancelDynamicHideTimeout() {
+            if (dynamicBlurTimeoutId) {
+                clearTimeout(dynamicBlurTimeoutId);
+                dynamicBlurTimeoutId = null;
             }
         }
 
@@ -2286,21 +2327,30 @@
         function selectEventSuggestion(suggestion) {
             elements.eventType.value = suggestion;
             suggestions.event.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.eventType.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             generateFilename();
         }
 
         function selectPlaceSuggestion(suggestion) {
             elements.place.value = suggestion;
             suggestions.place.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.place.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             generateFilename();
         }
 
         function selectSurnameSuggestion(suggestion) {
             elements.surname.value = suggestion;
             suggestions.surname.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.surname.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             // Don't clear given name and middle name - allow mixed manual/dropdown entry
             // Only clear if the fields are empty to avoid overwriting user input
             if (!elements.givenName.value && !elements.middleName.value) {
@@ -2329,14 +2379,20 @@
                 }
             }
             suggestions.givenName.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.givenName.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             generateFilename();
         }
 
         function selectInfoSuggestion(suggestion) {
             elements.fileInfo.value = suggestion;
             suggestions.fileInfo.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.fileInfo.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             generateFilename();
         }
 
@@ -2344,7 +2400,10 @@
         function selectSurname2Suggestion(suggestion) {
             elements.surname2.value = suggestion;
             suggestions.surname2.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.surname2.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             elements.givenName2.value = '';
             elements.middleName2.value = '';
             filterGivenName2Suggestions('');
@@ -2371,14 +2430,20 @@
                 }
             }
             suggestions.givenName2.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.givenName2.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             generateFilename();
         }
 
         function selectSurname3Suggestion(suggestion) {
             elements.surname3.value = suggestion;
             suggestions.surname3.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.surname3.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             elements.givenName3.value = '';
             elements.middleName3.value = '';
             filterGivenName3Suggestions('');
@@ -2405,7 +2470,10 @@
                 }
             }
             suggestions.givenName3.classList.add('hidden');
+            // Story 2.4: AC #2 - Suppress focus listener to prevent dropdown from reopening
+            suppressFocusFilter = true;
             elements.givenName3.focus(); // Story 2.3: Maintain focus after selection (AC #3)
+            setTimeout(() => suppressFocusFilter = false, 0); // Reset on next tick
             generateFilename();
         }
 
