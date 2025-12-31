@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story 2.4 Test - Mouse Click Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .pass { background-color: #d4edda; color: #155724; }
+        .fail { background-color: #f8d7da; color: #721c24; }
+        .pending { background-color: #fff3cd; color: #856404; }
+        h2 { color: #333; }
+        h3 { color: #666; margin-top: 20px; }
+        .instructions {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin: 20px 0;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .test-log {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .acceptance-criteria {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #28a745;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Story 2.4 Test Plan: Select Suggestion with Mouse Click</h1>
+
+    <div class="instructions">
+        <h3>Test Objective</h3>
+        <p>Verify that when a user clicks on an autocomplete suggestion with the mouse:</p>
+        <ul>
+            <li><strong>AC #1:</strong> The clicked suggestion's value is inserted into the input field</li>
+            <li><strong>AC #2:</strong> The dropdown closes immediately after selection</li>
+            <li><strong>AC #3:</strong> Focus returns to the input field</li>
+            <li><strong>AC #4:</strong> Mouse hover shows visual feedback (background color change)</li>
+            <li><strong>AC #5:</strong> Clicking works on both the text and the entire suggestion container area</li>
+            <li><strong>AC #6:</strong> Real-time filename preview updates to reflect the selected value</li>
+            <li><strong>AC #7:</strong> Click event does not bubble to parent elements (prevent unwanted triggers)</li>
+        </ul>
+    </div>
+
+    <div class="acceptance-criteria">
+        <h3>Expected Visual States</h3>
+        <ul>
+            <li><strong>Default:</strong> White background</li>
+            <li><strong>Hover:</strong> Light blue background (rgba(13, 110, 253, 0.1))</li>
+            <li><strong>Highlighted (keyboard):</strong> Blue background with left border (rgba(13, 110, 253, 0.15))</li>
+            <li><strong>Hover + Highlighted:</strong> Combined effect (rgba(13, 110, 253, 0.25))</li>
+            <li><strong>Click area:</strong> Entire suggestion-item div (min-height: 44px, full width)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Manual Test Procedures</h2>
+
+        <h3>Test 1: Basic Mouse Click - Type Field</h3>
+        <ol>
+            <li>Open <code>genealogy-filename-generator.html</code> in browser</li>
+            <li>Click in the "Type" field</li>
+            <li>Type "b" to trigger autocomplete (should show Birth, Baptism, Burial, etc.)</li>
+            <li><strong>Hover Test (AC #4):</strong> Move mouse over "Birth" suggestion WITHOUT clicking
+                <ul>
+                    <li>✓ Background changes to light blue (rgba(13, 110, 253, 0.1))</li>
+                    <li>✓ Cursor changes to pointer</li>
+                </ul>
+            </li>
+            <li>Click on "Birth" suggestion</li>
+            <li><strong>Expected Results:</strong>
+                <ul>
+                    <li>✓ Input field value = "Birth" (AC #1)</li>
+                    <li>✓ Dropdown disappears immediately (AC #2)</li>
+                    <li>✓ Focus visible on Type input - cursor blinking (AC #3)</li>
+                    <li>✓ Filename preview updates with "Birth" (AC #6)</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Test 2: Click Area Coverage (AC #5)</h3>
+        <ol>
+            <li>Click in the "Type" field</li>
+            <li>Type "b" to show suggestions</li>
+            <li><strong>Test 2a:</strong> Click directly on the TEXT "Birth"
+                <ul>
+                    <li>✓ Selection works (input = "Birth", dropdown closes)</li>
+                </ul>
+            </li>
+            <li>Type "b" again to re-open dropdown</li>
+            <li><strong>Test 2b:</strong> Click on the EMPTY SPACE to the right of "Birth" text (but within the suggestion container)
+                <ul>
+                    <li>✓ Selection still works (input = "Birth", dropdown closes)</li>
+                    <li>✓ Entire container area is clickable, not just text</li>
+                </ul>
+            </li>
+            <li>Type "b" again</li>
+            <li><strong>Test 2c:</strong> Click near the LEFT EDGE of the container (padding area)
+                <ul>
+                    <li>✓ Selection works (entire div is clickable)</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Test 3: Place Field with GEDCOM (AC #1-6)</h3>
+        <ol>
+            <li>Upload a GEDCOM file with places</li>
+            <li>Click in the "Place" field</li>
+            <li>Start typing a place name that exists in your GEDCOM</li>
+            <li>Verify hover feedback on suggestions</li>
+            <li>Click on a suggestion</li>
+            <li><strong>Expected Results:</strong>
+                <ul>
+                    <li>✓ Input field value = selected place</li>
+                    <li>✓ Dropdown closes</li>
+                    <li>✓ Focus returns to Place input</li>
+                    <li>✓ Filename preview updates</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Test 4: Surname Field with GEDCOM (AC #1-6)</h3>
+        <ol>
+            <li>With GEDCOM loaded, click in "Surname" field</li>
+            <li>Start typing a surname</li>
+            <li>Hover over a suggestion to verify visual feedback</li>
+            <li>Click on a suggestion</li>
+            <li><strong>Expected Results:</strong>
+                <ul>
+                    <li>✓ Input field value = selected surname</li>
+                    <li>✓ Dropdown closes</li>
+                    <li>✓ Focus returns to Surname input</li>
+                    <li>✓ Filename preview updates</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Test 5: File Info Field (AC #1-6)</h3>
+        <ol>
+            <li>Click in the "File Info" field</li>
+            <li>Type "o" to show suggestions (Original, Optimized, Colorized, etc.)</li>
+            <li>Hover to verify visual feedback</li>
+            <li>Click on "Original"</li>
+            <li><strong>Expected Results:</strong>
+                <ul>
+                    <li>✓ Input field value = "Original"</li>
+                    <li>✓ Dropdown closes</li>
+                    <li>✓ Focus returns to File Info input</li>
+                    <li>✓ Filename preview updates</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Test 6: Additional People Fields (Dynamic Suggestions) (AC #1-6)</h3>
+        <ol>
+            <li>With GEDCOM loaded, expand "Additional People" section</li>
+            <li>Click in "Person 2 - Surname" field</li>
+            <li>Start typing to show suggestions</li>
+            <li>Hover to verify visual feedback</li>
+            <li>Click on a suggestion</li>
+            <li><strong>Expected Results:</strong>
+                <ul>
+                    <li>✓ Input field value = selected surname</li>
+                    <li>✓ Dropdown closes</li>
+                    <li>✓ Focus returns to input</li>
+                    <li>✓ Filename preview updates</li>
+                </ul>
+            </li>
+            <li>Repeat for "Person 2 - Given Name" field</li>
+        </ol>
+
+        <h3>Test 7: Mouse and Keyboard Harmony</h3>
+        <ol>
+            <li>Click in "Type" field, type "b"</li>
+            <li>Press Down Arrow (↓) to highlight "Birth" with keyboard (blue background with border)</li>
+            <li>Move mouse over "Baptism" (should get hover state)</li>
+            <li><strong>Verify:</strong>
+                <ul>
+                    <li>✓ "Birth" remains highlighted (keyboard state)</li>
+                    <li>✓ "Baptism" shows hover state (mouse state)</li>
+                    <li>✓ Both states can coexist without interference</li>
+                </ul>
+            </li>
+            <li>Click on "Baptism" with mouse</li>
+            <li><strong>Expected Result:</strong>
+                <ul>
+                    <li>✓ Input = "Baptism" (mouse click overrides keyboard highlight)</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Test 8: Event Bubbling Prevention (AC #7)</h3>
+        <ol>
+            <li>Open browser DevTools Console (F12)</li>
+            <li>In Console, add a click listener to document:
+                <code>document.addEventListener('click', () => console.log('Document clicked!')); console.log('✓ Listener added')</code>
+            </li>
+            <li>Click in "Type" field, type "b" to show dropdown</li>
+            <li>Click on "Birth" suggestion</li>
+            <li><strong>Expected Results:</strong>
+                <ul>
+                    <li>✓ Input field = "Birth"</li>
+                    <li>✓ Dropdown closes</li>
+                    <li>✓ Console does NOT show "Document clicked!" message</li>
+                    <li>✓ Event was stopped from bubbling (event.stopPropagation() working)</li>
+                </ul>
+            </li>
+            <li>For comparison, click elsewhere on the page (outside dropdown)</li>
+            <li><strong>Verify:</strong>
+                <ul>
+                    <li>✓ Console DOES show "Document clicked!" for non-suggestion clicks</li>
+                    <li>✓ This confirms stopPropagation is specifically preventing suggestion click bubbling</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Test 9: Rapid Click Testing</h3>
+        <ol>
+            <li>Click in "Type" field, type "b"</li>
+            <li>Quickly click on "Birth" (double-click speed)</li>
+            <li><strong>Expected Results:</strong>
+                <ul>
+                    <li>✓ Input = "Birth"</li>
+                    <li>✓ Dropdown closes on first click</li>
+                    <li>✓ No duplicate selections or errors</li>
+                    <li>✓ Focus maintained on input</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Test 10: Focus Retention After Click (AC #3)</h3>
+        <ol>
+            <li>Click in "Type" field, type "b"</li>
+            <li>Click on "Birth" suggestion</li>
+            <li>Immediately start typing (e.g., type "/C" to modify)</li>
+            <li><strong>Expected Results:</strong>
+                <ul>
+                    <li>✓ Can type immediately without clicking again</li>
+                    <li>✓ Focus was retained on input field</li>
+                    <li>✓ Input shows "Birth/C" (or whatever you typed)</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Cross-Browser Testing</h2>
+        <p>Run all tests above in:</p>
+        <ul>
+            <li>✓ Chrome (primary)</li>
+            <li>✓ Firefox</li>
+            <li>✓ Safari (if available)</li>
+            <li>✓ Edge</li>
+        </ul>
+        <p>Verify consistent behavior across all browsers.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results Summary</h2>
+        <p>Document your test results here:</p>
+        <textarea style="width: 100%; height: 200px; padding: 10px; font-family: monospace;"
+                  placeholder="Record test results:
+- Test 1 (Type field basic click): PASS/FAIL
+- Test 2 (Click area coverage): PASS/FAIL
+- Test 3 (Place field): PASS/FAIL
+...etc"></textarea>
+    </div>
+
+    <div class="test-section">
+        <h2>Notes</h2>
+        <ul>
+            <li>This story builds on Story 2.1 (dropdown structure) and Story 2.3 (focus management)</li>
+            <li>Most functionality was already implemented in Story 2.1</li>
+            <li>Story 2.4 adds <code>event.stopPropagation()</code> and formalizes mouse interaction testing</li>
+            <li>All select functions now include <code>.focus()</code> from Story 2.3</li>
+            <li>Test files created: test-story-2-1.html, test-story-2-2.html, test-story-2-3.html, test-story-2-4.html (this file)</li>
+        </ul>
+    </div>
+</body>
+</html>
